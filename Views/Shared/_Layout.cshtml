@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+
+<!-- ── Site nav (shown on all layout-based pages) ─────────────────────── -->
+<nav class="site-nav">
+    <div class="nav-inner">
+        <a href="/Session/Start" class="nav-brand">
+            <img src="/images/logo.svg" alt="Cloudsfer" height="22" style="filter:brightness(0)invert(1);vertical-align:middle">
+            <span>CloudsferQA</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="/Session/Start" class="nav-link">+ New Session</a>
+            <a href="/Dashboard" class="nav-link">Dashboard</a>
+            @if (ViewBag.CurrentUser is CloudsferQA.Models.User navUser && navUser.Role == "Admin")
+            {
+                <a href="/Admin" class="nav-link nav-link-admin">⚙ Admin</a>
+            }
+            else if (ViewBag.CurrentUser is CloudsferQA.Models.User subUser && subUser.Role == "SubAdmin")
+            {
+                <a href="/Admin/TestCases" class="nav-link nav-link-admin">⚙ Test Cases</a>
+            }
+        </div>
+
+        <div class="nav-right">
+            @if (ViewBag.CurrentUser is CloudsferQA.Models.User cu)
+            {
+                <span class="nav-user-info">
+                    <span class="nav-email">@cu.Email</span>
+                    <span class="nav-role-badge role-@(cu.Role.ToLower())">@cu.Role</span>
+                </span>
+                <form method="post" action="/Auth/Logout" style="display:inline;margin:0">
+                    <button type="submit" class="nav-logout-btn">Logout</button>
+                </form>
+            }
+        </div>
+    </div>
+</nav>
+
+@RenderBody()
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

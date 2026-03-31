@@ -1,0 +1,65 @@
+@{
+    Layout = null;
+    var prefillEmail = ViewBag.Email as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/images/logo.svg" alt="Cloudsfer" height="36">
+        </div>
+
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Enter your email and set a password. Your role is assigned by your administrator.</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="auth-alert auth-alert-error">@ViewBag.Error</div>
+        }
+
+        <form method="post" action="/Auth/Register" autocomplete="off">
+
+            <div class="auth-field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email"
+                       value="@prefillEmail"
+                       placeholder="you@tzunami.com"
+                       required autofocus autocomplete="email">
+            </div>
+
+            <div class="auth-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Min. 8 characters"
+                       required minlength="8" autocomplete="new-password">
+            </div>
+
+            <div class="auth-field">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword"
+                       placeholder="Repeat your password"
+                       required autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="auth-btn">Create Account →</button>
+        </form>
+
+        <div class="auth-footer-link">
+            Already registered? <a href="/Auth/Login">Sign in</a>
+        </div>
+
+        <div class="auth-footer-brand">Cloudsfer QA Portal · Internal Use Only</div>
+    </div>
+</body>
+</html>

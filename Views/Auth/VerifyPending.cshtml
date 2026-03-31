@@ -1,0 +1,74 @@
+@{
+    Layout = null;
+    var email     = ViewBag.Email     as string;
+    var verifyUrl = ViewBag.VerifyUrl as string;
+    var error     = ViewBag.Error     as string;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check Your Email — CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body class="auth-body">
+    <div class="auth-card" style="text-align:center">
+        <div class="auth-logo">
+            <img src="/images/logo.svg" alt="Cloudsfer" height="36">
+        </div>
+
+        @if (error != null)
+        {
+            <div style="font-size:48px;margin-bottom:12px">❌</div>
+            <h1 class="auth-title">Invalid Link</h1>
+            <div class="auth-alert auth-alert-error" style="text-align:left">@error</div>
+            <p style="color:#546E7A;margin-bottom:20px">
+                The verification link may have already been used or has expired.
+                Please register again or contact an administrator.
+            </p>
+        }
+        else
+        {
+            <div style="font-size:52px;margin-bottom:12px">📬</div>
+            <h1 class="auth-title">Check Your Email</h1>
+            @if (email != null)
+            {
+                <p style="color:#546E7A;font-size:14px;line-height:1.6">
+                    We sent a verification link to<br>
+                    <strong style="color:#1565C0">@email</strong>
+                </p>
+            }
+            <p style="color:#78909C;font-size:13px;margin-top:12px;line-height:1.6">
+                Click the link in the email to activate your account.
+                Check your spam folder if you don't see it within a minute.
+            </p>
+
+            @if (verifyUrl != null)
+            {
+                <div class="auth-alert" style="text-align:left;margin-top:20px;background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:14px">
+                    <div style="font-size:12px;font-weight:700;color:#1565C0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">
+                        ⚙ Dev Mode — SMTP not configured
+                    </div>
+                    <div style="font-size:12px;color:#546E7A;margin-bottom:8px">
+                        No email was sent. Use this link to verify directly:
+                    </div>
+                    <a href="@verifyUrl" style="font-size:12px;color:#1565C0;word-break:break-all">@verifyUrl</a>
+                </div>
+            }
+        }
+
+        <div style="margin-top:28px">
+            <a href="/Auth/Login" class="auth-btn" style="display:inline-block;text-decoration:none;width:auto;padding:10px 28px">
+                ← Back to Login
+            </a>
+        </div>
+
+        <div class="auth-footer-brand" style="margin-top:24px">Cloudsfer QA Portal · Internal Use Only</div>
+    </div>
+</body>
+</html>

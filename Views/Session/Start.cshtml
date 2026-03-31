@@ -1,0 +1,259 @@
+@using CloudsferQA.Models
+@{
+    Layout = null;
+    var user             = ViewBag.CurrentUser as User;
+    var welcome          = ViewBag.Welcome as string;
+    var autoVersion      = ViewBag.AutoVersion as string ?? string.Empty;
+    var previousSessions = ViewBag.PreviousSessions as List<TestSession> ?? new List<TestSession>();
+    var completed        = TempData["Completed"] as string;
+    var isNewUser        = !previousSessions.Any();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Start Session — CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <style>
+        .user-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 20px; padding: 5px 14px;
+            font-size: 13px; color: rgba(255,255,255,.9);
+            margin-bottom: 16px;
+        }
+        .user-pill .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #69F0AE; flex-shrink: 0;
+        }
+        .user-pill .role-tag {
+            background: rgba(255,255,255,.15);
+            border-radius: 10px; padding: 1px 8px;
+            font-size: 11px; font-weight: 700;
+        }
+        .logout-link {
+            font-size: 12px; color: rgba(255,255,255,.6);
+            text-decoration: none; margin-left: 4px;
+        }
+        .logout-link:hover { color: rgba(255,255,255,.9); }
+    </style>
+</head>
+<body class="auth-body">
+    <!-- Logged-in indicator top-right -->
+    <div style="position:fixed;top:16px;right:20px;z-index:10">
+        @if (user != null)
+        {
+            <div class="user-pill">
+                <span class="dot"></span>
+                <span>@user.Email</span>
+                <span class="role-tag">@user.Role</span>
+                <form method="post" action="/Auth/Logout" style="display:inline;margin:0">
+                    <button type="submit" class="logout-link" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;color:rgba(255,255,255,.6)">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/images/logo.svg" alt="Cloudsfer" height="36">
+        </div>
+
+        @if (completed != null)
+        {
+            <div class="auth-alert" style="background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;margin-bottom:16px;border-radius:8px;padding:10px 14px;font-size:13px">
+                ✅ Version <strong>@completed</strong> marked as completed. A new version has been generated below.
+            </div>
+        }
+        @if (welcome != null)
+        {
+            <div class="auth-alert" style="background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;margin-bottom:16px;border-radius:8px;padding:10px 14px;font-size:13px">
+                🎉 @welcome Account verified successfully!
+            </div>
+        }
+
+        <h1 class="auth-title">Start Testing</h1>
+        <p class="auth-subtitle">Running as <strong>@(user?.Email ?? "unknown")</strong> · <em>@(user?.Role)</em></p>
+
+        <form method="post" action="/Session/Start">
+            <!-- Email (always bold) -->
+            <div class="auth-field">
+                <label>Your Email</label>
+                <input type="text" value="@(user?.Email)" readonly
+                       style="background:#F5F5F5;color:#263238;cursor:default;font-weight:700">
+            </div>
+
+            @if (isNewUser)
+            {
+                <!-- ── New user: just show auto-generated version ── -->
+                <div class="auth-field">
+                    <label for="version">Test Version</label>
+                    <input type="text" id="version" name="version"
+                           value="@autoVersion" required readonly
+                           style="font-weight:600;background:#F5F5F5;color:#263238;cursor:not-allowed;pointer-events:none;user-select:none">
+                </div>
+
+                <div class="auth-field">
+                    <label for="environment">Environment</label>
+                    <div style="position:relative">
+                        <select id="environment" name="environment" style="width:100%;padding:11px 14px;border:1.5px solid #CFD8DC;border-radius:8px;font-family:inherit;font-size:14px;color:#263238;background:#FAFAFA;outline:none;appearance:none;-webkit-appearance:none">
+                            <option value="Mass Test">Mass Test (Developers Environment)</option>
+                            <option value="APP4">APP4 (QA Environment)</option>
+                            <option value="APP3">APP3 (Pre Production)</option>
+                            <option value="APP">APP (Production)</option>
+                        </select>
+                        <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#78909C;pointer-events:none">▾</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-btn">Start Session →</button>
+            }
+            else
+            {
+                <!-- ── Returning user: Test Version label + toggle buttons ── -->
+                <div class="auth-field" style="margin-bottom:0">
+                    <label>Test Version</label>
+                    <div style="display:flex;gap:8px;margin-top:6px">
+                        <button type="button" id="btnNew" onclick="switchMode('new')"
+                                style="flex:1;padding:10px;border-radius:8px;border:2px solid #CFD8DC;background:#fff;color:#546E7A;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all .15s">
+                            + New Version
+                        </button>
+                        <button type="button" id="btnExisting" onclick="switchMode('existing')"
+                                style="flex:1;padding:10px;border-radius:8px;border:2px solid #CFD8DC;background:#fff;color:#546E7A;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all .15s">
+                            ↩ Existing Version
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NEW VERSION PANEL (hidden by default) -->
+                <div id="panelNew" style="display:none">
+                    <input type="hidden" name="version" value="@autoVersion">
+                    <div class="auth-field">
+                        <label for="environment">Environment</label>
+                        <div style="position:relative">
+                            <select id="environment" name="environment" style="width:100%;padding:11px 14px;border:1.5px solid #CFD8DC;border-radius:8px;font-family:inherit;font-size:14px;color:#263238;background:#FAFAFA;outline:none;appearance:none;-webkit-appearance:none">
+                                <option value="Mass Test">Mass Test (Developers Environment)</option>
+                                <option value="APP4">APP4 (QA Environment)</option>
+                                <option value="APP3">APP3 (Pre Production)</option>
+                                <option value="APP">APP (Production)</option>
+                            </select>
+                            <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#78909C;pointer-events:none">▾</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="auth-btn">Start New Session →</button>
+                </div>
+
+                <!-- EXISTING VERSION PANEL -->
+                <div id="panelExisting" style="display:none">
+                    <input type="hidden" name="version" value="">
+                    <input type="hidden" name="environment" value="">
+                    <input type="hidden" id="resumeSessionId" name="resumeSessionId" value="">
+
+                    <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-top:8px">
+                        @foreach (var (s, idx) in previousSessions.Select((s, i) => (s, i)))
+                        {
+                            var isLatest = idx == 0;
+                            <div class="version-card" data-session-id="@s.Id"
+                                 onclick="selectVersion(this, '@s.Id')"
+                                 style="padding:12px 14px;border:2px solid @(isLatest ? "#1565C0" : "#E0E0E0");border-radius:8px;cursor:pointer;transition:all .15s;background:@(isLatest ? "#E3F2FD" : "#fff")">
+                                <div style="display:flex;justify-content:space-between;align-items:center">
+                                    <span style="font-weight:700;color:#1565C0;font-size:14px">@s.Version</span>
+                                    <div style="display:flex;gap:6px;align-items:center">
+                                        @if (isLatest)
+                                        {
+                                            <span style="font-size:11px;background:#1565C0;color:#fff;padding:2px 8px;border-radius:10px;font-weight:600">Latest Version</span>
+                                        }
+                                        @if (s.CompletedAt.HasValue)
+                                        {
+                                            <span style="font-size:11px;background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:10px;font-weight:600">✓ Completed</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:10px;font-weight:600">In Progress</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div style="font-size:12px;color:#78909C;margin-top:4px">
+                                    @s.Environment · @s.StartedAt.ToString("yyyy-MM-dd HH:mm")
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <button type="submit" id="btnResume" class="auth-btn" disabled
+                            style="opacity:.5">Select a version above →</button>
+                </div>
+            }
+
+            <script>
+                // Key is date-based → auto-resets at midnight (new date = new key = no saved choice)
+                const _today      = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                const _storageKey = 'qaVersionMode_' + _today;
+
+                function switchMode(mode) {
+                    const isNew = mode === 'new';
+                    document.getElementById('panelNew').style.display      = isNew ? '' : 'none';
+                    document.getElementById('panelExisting').style.display = isNew ? 'none' : '';
+
+                    const btnNew = document.getElementById('btnNew');
+                    const btnEx  = document.getElementById('btnExisting');
+
+                    btnNew.style.background  = isNew ? '#1565C0' : '#fff';
+                    btnNew.style.color       = isNew ? '#fff'    : '#546E7A';
+                    btnNew.style.borderColor = isNew ? '#1565C0' : '#CFD8DC';
+
+                    btnEx.style.background   = isNew ? '#fff'    : '#1565C0';
+                    btnEx.style.color        = isNew ? '#546E7A' : '#fff';
+                    btnEx.style.borderColor  = isNew ? '#CFD8DC' : '#1565C0';
+
+                    // Remember choice for today only
+                    localStorage.setItem(_storageKey, mode);
+                }
+
+                // On load: restore today's choice if it exists, otherwise show nothing
+                (function () {
+                    const saved = localStorage.getItem(_storageKey);
+                    if (saved) switchMode(saved);
+                })();
+
+                function selectVersion(el, sessionId) {
+                    document.querySelectorAll('.version-card').forEach(c => {
+                        c.style.borderColor = '#E0E0E0';
+                        c.style.background  = '';
+                    });
+                    el.style.borderColor = '#1565C0';
+                    el.style.background  = '#E3F2FD';
+                    document.getElementById('resumeSessionId').value = sessionId;
+                    const btn = document.getElementById('btnResume');
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.textContent = 'Continue this Session →';
+                }
+            </script>
+        </form>
+
+        <div style="margin-top:18px;text-align:center">
+            <a href="/Dashboard" style="font-size:13px;color:#1565C0;text-decoration:none;font-weight:500">
+                📊 View Dashboard
+            </a>
+            @if (user?.Role == "Admin")
+            {
+                <span style="margin:0 10px;color:#CFD8DC">·</span>
+                <a href="/Admin" style="font-size:13px;color:#1565C0;text-decoration:none;font-weight:500">
+                    ⚙ Admin Panel
+                </a>
+            }
+        </div>
+
+        <div class="auth-footer-brand">Cloudsfer QA Portal</div>
+    </div>
+</body>
+</html>

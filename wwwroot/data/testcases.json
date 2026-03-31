@@ -1,0 +1,866 @@
+[
+  {
+    "id": "MIG-001",
+    "module": "Migration",
+    "submodule": "Source Connection",
+    "scenario": "Connect to Google Drive as migration source",
+    "steps": "1. Go to New Migration\n2. Select Google Drive as source\n3. Click Authorize and complete OAuth\n4. Verify connection shows account email",
+    "expected_result": "Google Drive account connected successfully, user email displayed in source panel",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-002",
+    "module": "Migration",
+    "submodule": "Source Connection",
+    "scenario": "Connect to OneDrive as migration source",
+    "steps": "1. Go to New Migration\n2. Select OneDrive as source\n3. Complete Microsoft OAuth flow\n4. Verify account appears in source",
+    "expected_result": "OneDrive account connected, tenant info displayed",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-003",
+    "module": "Migration",
+    "submodule": "Source Connection",
+    "scenario": "Connect to Dropbox as migration source",
+    "steps": "1. Select Dropbox as source\n2. Authorize via OAuth\n3. Verify connection",
+    "expected_result": "Dropbox account connected successfully",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-004",
+    "module": "Migration",
+    "submodule": "Source Connection",
+    "scenario": "Connect to Box as migration source",
+    "steps": "1. Select Box as source\n2. Complete OAuth\n3. Verify connection",
+    "expected_result": "Box account connected and folder tree visible",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-005",
+    "module": "Migration",
+    "submodule": "Source Connection",
+    "scenario": "Invalid credentials rejected on source connection",
+    "steps": "1. Select a source provider\n2. Enter invalid/revoked credentials\n3. Attempt to connect",
+    "expected_result": "Clear error message shown, user prompted to retry",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-006",
+    "module": "Migration",
+    "submodule": "Destination Connection",
+    "scenario": "Connect to Google Drive as migration destination",
+    "steps": "1. After source connected, select destination\n2. Choose Google Drive\n3. Authorize different account\n4. Verify destination shows correct email",
+    "expected_result": "Destination Google Drive account connected, distinct from source",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-007",
+    "module": "Migration",
+    "submodule": "Destination Connection",
+    "scenario": "Connect to SharePoint as destination",
+    "steps": "1. Select SharePoint as destination\n2. Enter tenant URL\n3. Authorize\n4. Select target site/library",
+    "expected_result": "SharePoint site connected, document library selectable",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-008",
+    "module": "Migration",
+    "submodule": "Destination Connection",
+    "scenario": "Same account cannot be source and destination",
+    "steps": "1. Connect Account A as source\n2. Attempt to use same Account A as destination",
+    "expected_result": "Error shown: source and destination must be different accounts",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-009",
+    "module": "Migration",
+    "submodule": "Folder Selection",
+    "scenario": "Select specific folders for migration",
+    "steps": "1. After both connections set up\n2. Browse source folder tree\n3. Select 3 specific subfolders\n4. Confirm selection",
+    "expected_result": "Only selected folders queued for migration, total file count shown",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-010",
+    "module": "Migration",
+    "submodule": "Folder Selection",
+    "scenario": "Select all folders (full migration)",
+    "steps": "1. Click 'Select All' on source folder tree\n2. Confirm",
+    "expected_result": "All folders selected, estimated size displayed",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-011",
+    "module": "Migration",
+    "submodule": "Folder Selection",
+    "scenario": "Deselect individual folders from a full selection",
+    "steps": "1. Select All\n2. Uncheck 2 specific folders\n3. Confirm",
+    "expected_result": "Excluded folders removed from migration scope, count updated",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-012",
+    "module": "Migration",
+    "submodule": "Migration Execution",
+    "scenario": "Start migration and verify it transitions to Running state",
+    "steps": "1. Configure source, destination, folders\n2. Click Start Migration\n3. Observe status change",
+    "expected_result": "Migration status changes from Pending → Running within 30 seconds",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-013",
+    "module": "Migration",
+    "submodule": "Migration Execution",
+    "scenario": "Pause and resume a running migration",
+    "steps": "1. Start a migration\n2. Click Pause when running\n3. Verify paused state\n4. Click Resume\n5. Verify running resumes",
+    "expected_result": "Migration pauses and resumes without data loss or duplication",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-014",
+    "module": "Migration",
+    "submodule": "Migration Execution",
+    "scenario": "Cancel a running migration",
+    "steps": "1. Start migration\n2. Click Cancel\n3. Confirm cancellation dialog\n4. Check status",
+    "expected_result": "Migration stops, status shows Cancelled, already-migrated files remain at destination",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-015",
+    "module": "Migration",
+    "submodule": "Migration Execution",
+    "scenario": "Migration completes and shows 100% progress",
+    "steps": "1. Run a small migration (< 10 files)\n2. Wait for completion\n3. Check progress bar and status",
+    "expected_result": "Progress bar reaches 100%, status shows Completed, all files present at destination",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-016",
+    "module": "Migration",
+    "submodule": "Migration Execution",
+    "scenario": "Files migrated maintain original folder structure",
+    "steps": "1. Migrate a folder with nested subfolders\n2. Check destination after completion",
+    "expected_result": "Folder hierarchy identical at destination",
+    "priority": "High"
+  },
+  {
+    "id": "MIG-017",
+    "module": "Migration",
+    "submodule": "Migration Report",
+    "scenario": "Download migration report after completion",
+    "steps": "1. Open a completed migration\n2. Click Download Report",
+    "expected_result": "CSV/Excel report downloaded listing all migrated files with status",
+    "priority": "Medium"
+  },
+  {
+    "id": "MIG-018",
+    "module": "Migration",
+    "submodule": "Migration Report",
+    "scenario": "Report shows failed files with error reasons",
+    "steps": "1. Run migration where some files are expected to fail (locked/unsupported)\n2. Download report",
+    "expected_result": "Failed files listed with specific error message per file",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-001",
+    "module": "Backup",
+    "submodule": "Backup Configuration",
+    "scenario": "Create a new backup task for Google Drive",
+    "steps": "1. Go to Backup > New Backup\n2. Select Google Drive as source\n3. Authorize account\n4. Choose destination storage\n5. Save",
+    "expected_result": "Backup task created, appears in backup list with Pending status",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-002",
+    "module": "Backup",
+    "submodule": "Backup Configuration",
+    "scenario": "Set backup schedule to daily",
+    "steps": "1. Create or edit backup task\n2. Set schedule to Daily\n3. Choose time 02:00 AM\n4. Save",
+    "expected_result": "Schedule saved, next run time shown as next day at 02:00",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-003",
+    "module": "Backup",
+    "submodule": "Backup Configuration",
+    "scenario": "Set backup schedule to weekly",
+    "steps": "1. Edit backup task\n2. Set schedule to Weekly, Monday\n3. Save",
+    "expected_result": "Schedule saved, next run shows next Monday",
+    "priority": "Medium"
+  },
+  {
+    "id": "BAK-004",
+    "module": "Backup",
+    "submodule": "Backup Configuration",
+    "scenario": "Configure backup retention policy",
+    "steps": "1. Edit backup task\n2. Set retention to 30 days\n3. Save",
+    "expected_result": "Retention policy saved, old backups beyond 30 days will be auto-deleted",
+    "priority": "Medium"
+  },
+  {
+    "id": "BAK-005",
+    "module": "Backup",
+    "submodule": "Backup Execution",
+    "scenario": "Manually trigger a backup run",
+    "steps": "1. Open a backup task\n2. Click Run Now\n3. Confirm",
+    "expected_result": "Backup starts immediately, status changes to Running",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-006",
+    "module": "Backup",
+    "submodule": "Backup Execution",
+    "scenario": "Backup completes successfully",
+    "steps": "1. Trigger a backup for a small folder\n2. Wait for completion",
+    "expected_result": "Backup status shows Completed, file count and size match source",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-007",
+    "module": "Backup",
+    "submodule": "Backup Execution",
+    "scenario": "Incremental backup only copies changed files",
+    "steps": "1. Run initial backup\n2. Add 2 new files to source\n3. Run backup again\n4. Check number of files copied",
+    "expected_result": "Second run copies only the 2 new files (incremental), not all files",
+    "priority": "High"
+  },
+  {
+    "id": "BAK-008",
+    "module": "Backup",
+    "submodule": "Backup History",
+    "scenario": "View backup run history",
+    "steps": "1. Open backup task\n2. Click History tab",
+    "expected_result": "List of previous runs shown with date, duration, files count, status",
+    "priority": "Medium"
+  },
+  {
+    "id": "BAK-009",
+    "module": "Backup",
+    "submodule": "Backup History",
+    "scenario": "Filter backup history by status",
+    "steps": "1. Open History tab\n2. Filter by Failed",
+    "expected_result": "Only failed runs shown in filtered view",
+    "priority": "Low"
+  },
+  {
+    "id": "RES-001",
+    "module": "Restore",
+    "submodule": "Restore Point Selection",
+    "scenario": "Browse available restore points for a backup task",
+    "steps": "1. Go to Restore\n2. Select a backup task\n3. View available restore points",
+    "expected_result": "List of restore points displayed with date/time and file count",
+    "priority": "High"
+  },
+  {
+    "id": "RES-002",
+    "module": "Restore",
+    "submodule": "Restore Point Selection",
+    "scenario": "Select a specific restore point by date",
+    "steps": "1. Open restore points\n2. Pick restore point from 7 days ago\n3. Confirm selection",
+    "expected_result": "Restore point selected, files from that snapshot shown",
+    "priority": "High"
+  },
+  {
+    "id": "RES-003",
+    "module": "Restore",
+    "submodule": "Restore Execution",
+    "scenario": "Restore all files from a restore point",
+    "steps": "1. Select restore point\n2. Choose Restore All\n3. Select destination\n4. Start restore",
+    "expected_result": "All files from restore point copied to destination, progress shown",
+    "priority": "High"
+  },
+  {
+    "id": "RES-004",
+    "module": "Restore",
+    "submodule": "Restore Execution",
+    "scenario": "Restore specific files from a restore point",
+    "steps": "1. Select restore point\n2. Browse files\n3. Select 3 specific files\n4. Restore to original location",
+    "expected_result": "Only selected files restored, other files unaffected",
+    "priority": "High"
+  },
+  {
+    "id": "RES-005",
+    "module": "Restore",
+    "submodule": "Restore Execution",
+    "scenario": "Restore to alternate destination folder",
+    "steps": "1. Select files to restore\n2. Choose alternate destination folder\n3. Start restore",
+    "expected_result": "Files restored to the alternate folder, original files unchanged",
+    "priority": "Medium"
+  },
+  {
+    "id": "RES-006",
+    "module": "Restore",
+    "submodule": "Restore Execution",
+    "scenario": "Conflict resolution: overwrite existing files",
+    "steps": "1. Restore files that already exist at destination\n2. Choose Overwrite on conflict dialog",
+    "expected_result": "Existing files overwritten with backup version",
+    "priority": "Medium"
+  },
+  {
+    "id": "RES-007",
+    "module": "Restore",
+    "submodule": "Restore Execution",
+    "scenario": "Conflict resolution: keep both files",
+    "steps": "1. Restore files that already exist at destination\n2. Choose Keep Both on conflict dialog",
+    "expected_result": "Restored file renamed (e.g. filename (1).ext), both files present",
+    "priority": "Medium"
+  },
+  {
+    "id": "RES-008",
+    "module": "Restore",
+    "submodule": "Restore Verification",
+    "scenario": "Verify restored file content matches original",
+    "steps": "1. Restore a known file\n2. Open restored file\n3. Compare content with original",
+    "expected_result": "File content identical to backup snapshot version",
+    "priority": "High"
+  },
+  {
+    "id": "NOT-001",
+    "module": "Emails & Notifications",
+    "submodule": "Email Delivery",
+    "scenario": "Migration completion email sent to account owner",
+    "steps": "1. Configure notification email in settings\n2. Complete a migration\n3. Check inbox",
+    "expected_result": "Email received within 5 minutes of migration completion with summary stats",
+    "priority": "High"
+  },
+  {
+    "id": "NOT-002",
+    "module": "Emails & Notifications",
+    "submodule": "Email Delivery",
+    "scenario": "Backup failure email notification sent",
+    "steps": "1. Configure a backup that will fail (revoke source access)\n2. Trigger backup run\n3. Check inbox",
+    "expected_result": "Failure email received with error details and recommended action",
+    "priority": "High"
+  },
+  {
+    "id": "NOT-003",
+    "module": "Emails & Notifications",
+    "submodule": "Email Delivery",
+    "scenario": "Weekly backup summary email delivered",
+    "steps": "1. Enable weekly summary notification\n2. Wait for scheduled send (or trigger manually in test env)\n3. Check inbox",
+    "expected_result": "Summary email lists all backup tasks, last run status, next run time",
+    "priority": "Medium"
+  },
+  {
+    "id": "NOT-004",
+    "module": "Emails & Notifications",
+    "submodule": "Notification Settings",
+    "scenario": "Disable email notifications for a specific task",
+    "steps": "1. Open task settings\n2. Toggle notifications OFF\n3. Trigger task completion",
+    "expected_result": "No email sent after task completion",
+    "priority": "Medium"
+  },
+  {
+    "id": "NOT-005",
+    "module": "Emails & Notifications",
+    "submodule": "Notification Settings",
+    "scenario": "Add additional notification recipient",
+    "steps": "1. Go to task notification settings\n2. Add secondary email\n3. Complete task",
+    "expected_result": "Both primary and secondary email addresses receive notifications",
+    "priority": "Medium"
+  },
+  {
+    "id": "NOT-006",
+    "module": "Emails & Notifications",
+    "submodule": "Email Content",
+    "scenario": "Notification email contains correct task name and stats",
+    "steps": "1. Complete a migration named 'Test-Migration-001'\n2. Open completion email",
+    "expected_result": "Email shows correct task name, files migrated count, size, duration",
+    "priority": "High"
+  },
+  {
+    "id": "NOT-007",
+    "module": "Emails & Notifications",
+    "submodule": "Email Content",
+    "scenario": "Email links open correct task in Cloudsfer app",
+    "steps": "1. Receive task notification email\n2. Click 'View Task' link in email",
+    "expected_result": "Link opens Cloudsfer app to the specific task detail page",
+    "priority": "Medium"
+  },
+  {
+    "id": "REG-001",
+    "module": "Registration & Onboarding",
+    "submodule": "Account Registration",
+    "scenario": "Register new account with valid email",
+    "steps": "1. Go to Cloudsfer registration page\n2. Enter valid business email\n3. Set password\n4. Submit",
+    "expected_result": "Account created, verification email sent, user redirected to check-email page",
+    "priority": "High"
+  },
+  {
+    "id": "REG-002",
+    "module": "Registration & Onboarding",
+    "submodule": "Account Registration",
+    "scenario": "Registration blocked for personal email domains",
+    "steps": "1. Attempt registration with gmail.com email\n2. Submit",
+    "expected_result": "Error: only business email addresses accepted",
+    "priority": "High"
+  },
+  {
+    "id": "REG-003",
+    "module": "Registration & Onboarding",
+    "submodule": "Account Registration",
+    "scenario": "Duplicate email registration rejected",
+    "steps": "1. Register with email that already exists\n2. Submit",
+    "expected_result": "Error: email already registered, link to login or reset password",
+    "priority": "High"
+  },
+  {
+    "id": "REG-004",
+    "module": "Registration & Onboarding",
+    "submodule": "Email Verification",
+    "scenario": "Verify account via email link",
+    "steps": "1. Register new account\n2. Open verification email\n3. Click verification link",
+    "expected_result": "Account activated, user logged in and redirected to dashboard",
+    "priority": "High"
+  },
+  {
+    "id": "REG-005",
+    "module": "Registration & Onboarding",
+    "submodule": "Email Verification",
+    "scenario": "Expired verification link shows helpful error",
+    "steps": "1. Register\n2. Wait for link to expire (24h)\n3. Click old link",
+    "expected_result": "Error shown: link expired, option to resend verification email",
+    "priority": "Medium"
+  },
+  {
+    "id": "REG-006",
+    "module": "Registration & Onboarding",
+    "submodule": "Email Verification",
+    "scenario": "Resend verification email works",
+    "steps": "1. Login with unverified account\n2. Click Resend Verification\n3. Check inbox",
+    "expected_result": "New verification email received with fresh link",
+    "priority": "Medium"
+  },
+  {
+    "id": "REG-007",
+    "module": "Registration & Onboarding",
+    "submodule": "Onboarding Flow",
+    "scenario": "New user shown onboarding wizard on first login",
+    "steps": "1. Complete registration and verify email\n2. First login",
+    "expected_result": "Onboarding wizard shown: step 1 of 3 — choose first migration type",
+    "priority": "High"
+  },
+  {
+    "id": "REG-008",
+    "module": "Registration & Onboarding",
+    "submodule": "Onboarding Flow",
+    "scenario": "Onboarding wizard can be skipped",
+    "steps": "1. First login triggers wizard\n2. Click Skip",
+    "expected_result": "Wizard closed, user taken to main dashboard",
+    "priority": "Medium"
+  },
+  {
+    "id": "OPA-001",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Installation",
+    "scenario": "Download OPA installer for Windows",
+    "steps": "1. Go to OPA section\n2. Click Download for Windows\n3. Save and check file",
+    "expected_result": "MSI installer downloaded, file size > 5MB, name matches current version",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-002",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Installation",
+    "scenario": "Install OPA and verify it appears in Cloudsfer portal",
+    "steps": "1. Run OPA installer\n2. Enter registration token from portal\n3. Complete installation\n4. Refresh portal OPA page",
+    "expected_result": "New agent listed in portal with status Online",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-003",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Installation",
+    "scenario": "Invalid registration token rejected during install",
+    "steps": "1. Run installer\n2. Enter an invalid/expired token\n3. Attempt to complete",
+    "expected_result": "Installation fails with clear error: invalid or expired token",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-004",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Status",
+    "scenario": "Agent shows Online status in portal",
+    "steps": "1. Ensure OPA service is running on the machine\n2. Open portal OPA page",
+    "expected_result": "Agent shows Online with last heartbeat within 60 seconds",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-005",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Status",
+    "scenario": "Agent shows Offline when service stopped",
+    "steps": "1. Stop OPA Windows service\n2. Wait 2 minutes\n3. Refresh portal",
+    "expected_result": "Agent status changes to Offline",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-006",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "Agent Status",
+    "scenario": "Reconnect notification when agent comes back online",
+    "steps": "1. Stop agent service (agent goes offline)\n2. Restart service\n3. Check portal",
+    "expected_result": "Agent status returns to Online, last seen timestamp updated",
+    "priority": "Medium"
+  },
+  {
+    "id": "OPA-007",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "File Server Migration",
+    "scenario": "Use OPA to access on-premise file server as source",
+    "steps": "1. Create new migration\n2. Select File Server (OPA) as source\n3. Choose registered agent\n4. Enter file share path",
+    "expected_result": "Folder tree from file server displayed in migration setup",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-008",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "File Server Migration",
+    "scenario": "Migrate from on-premise file server to cloud storage via OPA",
+    "steps": "1. Configure migration: OPA file server → Google Drive\n2. Select folders\n3. Start migration",
+    "expected_result": "Files transferred from on-premise to cloud, progress shown in portal",
+    "priority": "High"
+  },
+  {
+    "id": "OPA-009",
+    "module": "OPA (On-Premise Agent)",
+    "submodule": "File Server Migration",
+    "scenario": "Large file (> 2GB) migrates successfully via OPA",
+    "steps": "1. Place a 2.5GB file on file server\n2. Include it in migration\n3. Start and complete migration",
+    "expected_result": "Large file migrated intact, file size at destination matches source",
+    "priority": "High"
+  },
+  {
+    "id": "TASK-001",
+    "module": "Task Bar",
+    "submodule": "Task List",
+    "scenario": "All active tasks visible in task bar",
+    "steps": "1. Start 2 migrations and 1 backup simultaneously\n2. Open task bar",
+    "expected_result": "All 3 tasks listed with individual progress indicators",
+    "priority": "High"
+  },
+  {
+    "id": "TASK-002",
+    "module": "Task Bar",
+    "submodule": "Task List",
+    "scenario": "Completed tasks removed from active task bar",
+    "steps": "1. Wait for a task to complete\n2. Check task bar",
+    "expected_result": "Completed task no longer in active list (or moved to completed section)",
+    "priority": "Medium"
+  },
+  {
+    "id": "TASK-003",
+    "module": "Task Bar",
+    "submodule": "Task Progress",
+    "scenario": "Task progress percentage updates in real time",
+    "steps": "1. Start a migration\n2. Watch task bar for 60 seconds",
+    "expected_result": "Progress percentage increases without page refresh",
+    "priority": "High"
+  },
+  {
+    "id": "TASK-004",
+    "module": "Task Bar",
+    "submodule": "Task Progress",
+    "scenario": "Task bar shows estimated time remaining",
+    "steps": "1. Start a large migration\n2. Open task bar after 30 seconds",
+    "expected_result": "ETA displayed next to progress (e.g. '~12 min remaining')",
+    "priority": "Medium"
+  },
+  {
+    "id": "TASK-005",
+    "module": "Task Bar",
+    "submodule": "Task Actions",
+    "scenario": "Pause task from task bar",
+    "steps": "1. Open task bar with running migration\n2. Click Pause icon",
+    "expected_result": "Task pauses, icon changes to Play, progress freezes",
+    "priority": "High"
+  },
+  {
+    "id": "TASK-006",
+    "module": "Task Bar",
+    "submodule": "Task Actions",
+    "scenario": "Cancel task from task bar",
+    "steps": "1. Click Cancel icon on a running task in task bar\n2. Confirm dialog",
+    "expected_result": "Task cancelled, removed from active list",
+    "priority": "High"
+  },
+  {
+    "id": "TASK-007",
+    "module": "Task Bar",
+    "submodule": "Task Actions",
+    "scenario": "Click task in task bar navigates to task detail",
+    "steps": "1. Click task name in task bar",
+    "expected_result": "User navigated to full task detail page",
+    "priority": "Medium"
+  },
+  {
+    "id": "TASK-008",
+    "module": "Task Bar",
+    "submodule": "Task Notifications",
+    "scenario": "In-app notification shown when task completes",
+    "steps": "1. Start a small migration\n2. Wait for completion while on a different page",
+    "expected_result": "Toast/banner notification appears: 'Migration completed successfully'",
+    "priority": "Medium"
+  },
+  {
+    "id": "ADM-001",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin can view all registered users",
+    "steps": "1. Login as admin\n2. Go to Admin panel\n3. View Users list",
+    "expected_result": "All users listed with email, role, status, registration date",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-002",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin can activate a deactivated user",
+    "steps": "1. Find deactivated user in admin panel\n2. Click Activate",
+    "expected_result": "User status changes to Active, user can now login",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-003",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin can deactivate an active user",
+    "steps": "1. Find active user\n2. Click Deactivate\n3. Confirm",
+    "expected_result": "User deactivated, cannot login (blocked at auth)",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-004",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin cannot deactivate own account",
+    "steps": "1. Login as admin\n2. Open own user detail\n3. Attempt to deactivate",
+    "expected_result": "Deactivate button disabled or error shown: cannot deactivate own account",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-005",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin can change user role",
+    "steps": "1. Open user detail in admin panel\n2. Change role from QA to Dev\n3. Save",
+    "expected_result": "Role updated immediately, shown in user list",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-006",
+    "module": "Administrator",
+    "submodule": "User Management",
+    "scenario": "Admin can manually verify an unverified user",
+    "steps": "1. Find unverified user (no email verification done)\n2. Click Verify manually",
+    "expected_result": "User marked as verified, can now login",
+    "priority": "Medium"
+  },
+  {
+    "id": "ADM-007",
+    "module": "Administrator",
+    "submodule": "Activity Monitoring",
+    "scenario": "Admin can see all test sessions across all users",
+    "steps": "1. Go to Admin > Sessions or User Detail\n2. View sessions list",
+    "expected_result": "All sessions listed with user email, version, environment, date",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-008",
+    "module": "Administrator",
+    "submodule": "Activity Monitoring",
+    "scenario": "Admin can view test results for any user's session",
+    "steps": "1. Open a user's session from admin panel\n2. View results",
+    "expected_result": "Full pass/fail/blocked results visible for that session",
+    "priority": "High"
+  },
+  {
+    "id": "ADM-009",
+    "module": "Administrator",
+    "submodule": "System Settings",
+    "scenario": "Admin panel shows overall system stats",
+    "steps": "1. Open admin dashboard",
+    "expected_result": "KPI cards show: total users, active users, total sessions, pending verifications",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-001",
+    "module": "QA & Dev",
+    "submodule": "Test Session",
+    "scenario": "QA user can start a new test session",
+    "steps": "1. Login as QA user\n2. Go to Start Session\n3. Fill version and environment\n4. Submit",
+    "expected_result": "Session created, redirected to test case view with all modules loaded",
+    "priority": "High"
+  },
+  {
+    "id": "QA-002",
+    "module": "QA & Dev",
+    "submodule": "Test Session",
+    "scenario": "Dev user can start a test session",
+    "steps": "1. Login as Dev user\n2. Start session with Mass Test environment",
+    "expected_result": "Session created for Dev user, same test case set available",
+    "priority": "High"
+  },
+  {
+    "id": "QA-003",
+    "module": "QA & Dev",
+    "submodule": "Test Session",
+    "scenario": "Session persists across browser tab refresh",
+    "steps": "1. Start session and mark 5 test cases\n2. Refresh browser tab",
+    "expected_result": "Same session loaded, all 5 markings preserved",
+    "priority": "High"
+  },
+  {
+    "id": "QA-004",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Mark test case as Pass",
+    "steps": "1. Open a test case card\n2. Click Pass button",
+    "expected_result": "Card border turns green, status badge shows Pass, header chip increments",
+    "priority": "High"
+  },
+  {
+    "id": "QA-005",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Mark test case as Fail",
+    "steps": "1. Click Fail button on a test case",
+    "expected_result": "Card border turns red, status badge shows Fail, Fail chip increments",
+    "priority": "High"
+  },
+  {
+    "id": "QA-006",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Mark test case as Blocked",
+    "steps": "1. Click Blocked button on a test case",
+    "expected_result": "Card shows orange Blocked status",
+    "priority": "High"
+  },
+  {
+    "id": "QA-007",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Mark test case as Skip",
+    "steps": "1. Click Skip button on a test case",
+    "expected_result": "Card shows Skip status (grey), counted as tested in progress",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-008",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Change status from Pass to Fail",
+    "steps": "1. Mark a test as Pass\n2. Click Fail on same card",
+    "expected_result": "Status updated to Fail, Pass chip decrements, Fail chip increments",
+    "priority": "High"
+  },
+  {
+    "id": "QA-009",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Add notes to a test case",
+    "steps": "1. Click on notes field of a test case\n2. Type 'Reproduced on APP4 only'\n3. Wait 1 second",
+    "expected_result": "Notes auto-saved, persists after page refresh",
+    "priority": "High"
+  },
+  {
+    "id": "QA-010",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Mark All Pass bulk action",
+    "steps": "1. Navigate to a submodule with 5 test cases\n2. Click Mark All Pass",
+    "expected_result": "All 5 visible cases marked Pass, progress and chips updated",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-011",
+    "module": "QA & Dev",
+    "submodule": "Test Execution",
+    "scenario": "Skip All bulk action",
+    "steps": "1. Navigate to a submodule\n2. Click Skip All",
+    "expected_result": "All visible cases marked Skip",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-012",
+    "module": "QA & Dev",
+    "submodule": "Test Filtering",
+    "scenario": "Filter test cases by Fail status",
+    "steps": "1. Mark some cases as Fail\n2. Click Fail filter button",
+    "expected_result": "Only Fail cards visible, others hidden",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-013",
+    "module": "QA & Dev",
+    "submodule": "Test Filtering",
+    "scenario": "Filter test cases by Pending status",
+    "steps": "1. Click Pending filter",
+    "expected_result": "Only untested cards shown",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-014",
+    "module": "QA & Dev",
+    "submodule": "Test Filtering",
+    "scenario": "Search sidebar modules by keyword",
+    "steps": "1. Type 'backup' in sidebar search",
+    "expected_result": "Only Backup module visible in sidebar, others hidden",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-015",
+    "module": "QA & Dev",
+    "submodule": "Export",
+    "scenario": "Export session results to Excel",
+    "steps": "1. Open an active or completed session\n2. Click Export button",
+    "expected_result": "XLSX file downloaded with Summary sheet + one sheet per module",
+    "priority": "High"
+  },
+  {
+    "id": "QA-016",
+    "module": "QA & Dev",
+    "submodule": "Export",
+    "scenario": "Exported Excel contains correct data",
+    "steps": "1. Mark 10 test cases across 3 modules\n2. Export\n3. Open Excel and verify",
+    "expected_result": "Each marked case appears with correct status, notes, timestamp in relevant sheet",
+    "priority": "High"
+  },
+  {
+    "id": "QA-017",
+    "module": "QA & Dev",
+    "submodule": "Dashboard",
+    "scenario": "Dashboard shows all sessions in dropdown",
+    "steps": "1. Complete 3 sessions\n2. Go to Dashboard",
+    "expected_result": "Dropdown lists all 3 sessions with tester name, version, date",
+    "priority": "Medium"
+  },
+  {
+    "id": "QA-018",
+    "module": "QA & Dev",
+    "submodule": "Dashboard",
+    "scenario": "Dashboard KPI cards show correct counts",
+    "steps": "1. Select a session on dashboard\n2. Check Pass/Fail/Blocked/Skip/Pending counts",
+    "expected_result": "KPI cards match actual result counts from that session",
+    "priority": "High"
+  },
+  {
+    "id": "QA-019",
+    "module": "QA & Dev",
+    "submodule": "Dashboard",
+    "scenario": "Module pass-rate chart updates on session change",
+    "steps": "1. Select session A on dashboard (view charts)\n2. Switch to session B",
+    "expected_result": "All charts re-render with data from session B",
+    "priority": "High"
+  },
+  {
+    "id": "QA-020",
+    "module": "QA & Dev",
+    "submodule": "Dashboard",
+    "scenario": "Activity feed shows recent test results",
+    "steps": "1. Mark 5 test cases in the last few minutes\n2. Open dashboard",
+    "expected_result": "Activity feed shows those 5 results with relative timestamps",
+    "priority": "Medium"
+  }
+]

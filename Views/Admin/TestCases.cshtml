@@ -1,0 +1,231 @@
+@model List<CloudsferQA.Models.TestCase>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Test Case Management";
+
+    var savedOrder = ViewBag.ModuleOrder as Dictionary<string, int> ?? new Dictionary<string, int>();
+
+    var grouped = Model
+        .GroupBy(t => t.Module)
+        .OrderBy(g => savedOrder.TryGetValue(g.Key, out var o) ? o : int.MaxValue)
+        .ThenBy(g => g.Key)
+        .ToDictionary(
+            g => g.Key,
+            g => g.GroupBy(t => t.Submodule).OrderBy(sg => sg.Key).ToDictionary(sg => sg.Key, sg => sg.OrderBy(t => t.Id).ToList())
+        );
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="font-weight:700;color:#1565C0;margin:0">Test Case Management</h2>
+            <div style="font-size:13px;color:#78909C;margin-top:2px">@Model.Count total test cases across @grouped.Count modules</div>
+        </div>
+        <a href="/Admin" style="font-size:13px;color:#546E7A;text-decoration:none">← Back to Admin</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div style="background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px">
+            ✓ @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div style="background:#FFEBEE;border:1px solid #EF9A9A;color:#C62828;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px">
+            ✗ @TempData["Error"]
+        </div>
+    }
+
+    <!-- Add new module button -->
+    <div class="mb-3">
+        <button class="btn btn-sm btn-primary" onclick="showAddModule()">+ Add New Module</button>
+    </div>
+
+    <!-- Add Module inline form (hidden by default) -->
+    <div id="addModuleForm" style="display:none;background:#F5F5F5;border:1px solid #E0E0E0;border-radius:8px;padding:16px;margin-bottom:16px">
+        <strong style="font-size:13px">Add New Module</strong>
+        <form method="post" action="/Admin/AddTestCase" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <input name="moduleName" placeholder="Module name" class="form-control form-control-sm" style="max-width:200px" required>
+            <input name="submoduleName" placeholder="First submodule name" class="form-control form-control-sm" style="max-width:200px" required>
+            <input name="Scenario" placeholder="First test case scenario" class="form-control form-control-sm" style="max-width:300px" required>
+            <select name="Priority" class="form-select form-select-sm" style="max-width:120px">
+                <option>High</option><option selected>Medium</option><option>Low</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-success">Add</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('addModuleForm').style.display='none'">Cancel</button>
+        </form>
+    </div>
+
+    <!-- Module accordion (drag to reorder) -->
+    <div id="moduleList">
+    @{ int modIdx = 0; }
+    @foreach (var (moduleName, submodules) in grouped)
+    {
+        var moduleCount = submodules.Values.Sum(l => l.Count);
+        var mId = modIdx++;
+        <div class="tc-module mb-3" data-module="@moduleName" style="border:1px solid #E0E0E0;border-radius:10px;overflow:hidden">
+
+            <!-- Module header -->
+            <div style="background:#1565C0;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span class="drag-handle" title="Drag to reorder" style="cursor:grab;color:rgba(255,255,255,.6);font-size:16px;line-height:1;user-select:none">⠿</span>
+                    <button onclick="toggleModule(this)" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:0;line-height:1">▸</button>
+                    <strong style="font-size:14px">@moduleName</strong>
+                    <span style="font-size:11px;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px">@moduleCount test cases</span>
+                </div>
+                <div style="display:flex;gap:6px">
+                    <button class="tc-btn tc-btn-light" onclick="toggleRename('rename-mod-@mId')">Rename</button>
+                    <a href="/Admin/AddTestCase?moduleName=@Uri.EscapeDataString(moduleName)&submoduleName=" class="tc-btn tc-btn-light">+ Submodule</a>
+                    <form method="post" action="/Admin/DeleteModule" style="margin:0"
+                          onsubmit="return confirm('Delete this module and ALL its test cases?')">
+                        <input type="hidden" name="moduleName" value="@moduleName">
+                        <button type="submit" class="tc-btn tc-btn-danger">Delete Module</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rename module inline form -->
+            <div id="rename-mod-@mId" style="display:none;background:#FFF8E1;padding:10px 16px;border-bottom:1px solid #FFE082">
+                <form method="post" action="/Admin/RenameModule" style="display:flex;gap:8px;align-items:center">
+                    <input type="hidden" name="oldName" value="@moduleName">
+                    <input name="newName" value="@moduleName" class="form-control form-control-sm" style="max-width:280px" required>
+                    <button type="submit" class="btn btn-sm btn-warning">Save</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleRename('rename-mod-@mId')">Cancel</button>
+                </form>
+            </div>
+
+            <!-- Submodules — collapsed by default -->
+            <div class="tc-module-body" style="display:none">
+                @{ int subIdx = 0; }
+                @foreach (var (submoduleName, cases) in submodules)
+                {
+                    var sId = $"s{mId}_{subIdx++}";
+                    <div style="border-bottom:1px solid #F5F5F5">
+                        <!-- Submodule header -->
+                        <div style="background:#F9F9F9;padding:8px 16px 8px 32px;display:flex;align-items:center;justify-content:space-between">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <button onclick="toggleSubmodule(this)" style="background:none;border:none;color:#546E7A;font-size:13px;cursor:pointer;padding:0">▸</button>
+                                <span style="font-weight:600;color:#37474F;font-size:13px">@submoduleName</span>
+                                <span style="font-size:11px;color:#90A4AE">@cases.Count cases</span>
+                            </div>
+                            <div style="display:flex;gap:6px">
+                                <button class="tc-btn tc-btn-muted" onclick="toggleRename('rename-sub-@sId')">Rename</button>
+                                <a href="/Admin/AddTestCase?moduleName=@Uri.EscapeDataString(moduleName)&submoduleName=@Uri.EscapeDataString(submoduleName)" class="tc-btn tc-btn-muted">+ Test Case</a>
+                                <form method="post" action="/Admin/DeleteSubmodule" style="margin:0"
+                                      onsubmit="return confirm('Delete this submodule and all its test cases?')">
+                                    <input type="hidden" name="moduleName" value="@moduleName">
+                                    <input type="hidden" name="submoduleName" value="@submoduleName">
+                                    <button type="submit" class="tc-btn tc-btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Rename submodule inline form -->
+                        <div id="rename-sub-@sId" style="display:none;background:#FFF8E1;padding:8px 16px 8px 32px;border-top:1px solid #FFE082">
+                            <form method="post" action="/Admin/RenameSubmodule" style="display:flex;gap:8px;align-items:center">
+                                <input type="hidden" name="moduleName" value="@moduleName">
+                                <input type="hidden" name="oldName" value="@submoduleName">
+                                <input name="newName" value="@submoduleName" class="form-control form-control-sm" style="max-width:280px" required>
+                                <button type="submit" class="btn btn-sm btn-warning">Save</button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleRename('rename-sub-@sId')">Cancel</button>
+                            </form>
+                        </div>
+
+                        <!-- Test cases table — collapsed by default -->
+                        <div class="tc-sub-body" style="display:none">
+                            <table style="width:100%;font-size:12px;border-collapse:collapse">
+                                <thead>
+                                    <tr style="background:#FAFAFA;color:#90A4AE;text-transform:uppercase;font-size:10px;letter-spacing:.5px">
+                                        <th style="padding:6px 16px 6px 48px;text-align:left">ID</th>
+                                        <th style="padding:6px 8px;text-align:left">Scenario</th>
+                                        <th style="padding:6px 8px;text-align:left">Priority</th>
+                                        <th style="padding:6px 16px;text-align:right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tc in cases)
+                                    {
+                                        <tr style="border-top:1px solid #F5F5F5">
+                                            <td style="padding:8px 8px 8px 48px;color:#1565C0;font-weight:600;white-space:nowrap">@tc.Id</td>
+                                            <td style="padding:8px;color:#37474F">@tc.Scenario</td>
+                                            <td style="padding:8px">
+                                                <span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;
+                                                    background:@(tc.Priority=="High"?"#FFEBEE":tc.Priority=="Medium"?"#FFF3E0":"#E8F5E9");
+                                                    color:@(tc.Priority=="High"?"#C62828":tc.Priority=="Medium"?"#E65100":"#2E7D32")">
+                                                    @tc.Priority
+                                                </span>
+                                            </td>
+                                            <td style="padding:8px 16px;text-align:right;white-space:nowrap">
+                                                <a href="/Admin/EditTestCase/@tc.Id" class="tc-btn tc-btn-muted">Edit</a>
+                                                <form method="post" action="/Admin/DeleteTestCase" style="display:inline;margin:0"
+                                                      onsubmit="return confirm('Delete test case @tc.Id?')">
+                                                    <input type="hidden" name="id" value="@tc.Id">
+                                                    <button type="submit" class="tc-btn tc-btn-danger">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    </div>
+</div>
+
+<style>
+    .tc-btn { display:inline-block;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;text-decoration:none;font-family:inherit }
+    .tc-btn-light  { background:rgba(255,255,255,.2);color:#fff }
+    .tc-btn-light:hover { background:rgba(255,255,255,.35);color:#fff }
+    .tc-btn-muted  { background:#ECEFF1;color:#546E7A }
+    .tc-btn-muted:hover { background:#CFD8DC;color:#37474F }
+    .tc-btn-danger { background:#FFEBEE;color:#C62828 }
+    .tc-btn-danger:hover { background:#FFCDD2 }
+</style>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+    // Drag-and-drop module reordering
+    Sortable.create(document.getElementById('moduleList'), {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function () {
+            const order = [...document.querySelectorAll('#moduleList .tc-module')]
+                .map(el => el.dataset.module);
+            fetch('/Admin/SaveModuleOrder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order)
+            });
+        }
+    });
+
+    function toggleRename(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+    }
+    function toggleModule(btn) {
+        const body = btn.closest('.tc-module').querySelector('.tc-module-body');
+        const open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : '';
+        btn.textContent = open ? '▸' : '▾';
+    }
+    function toggleSubmodule(btn) {
+        const subBody = btn.closest('div').parentElement.nextElementSibling.nextElementSibling;
+        const open = subBody.style.display !== 'none';
+        subBody.style.display = open ? 'none' : '';
+        btn.textContent = open ? '▸' : '▾';
+    }
+    function showAddModule() {
+        const f = document.getElementById('addModuleForm');
+        f.style.display = f.style.display === 'none' ? '' : 'none';
+    }
+</script>
+}

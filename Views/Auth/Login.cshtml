@@ -1,0 +1,60 @@
+@{
+    Layout = null;
+    var prefillEmail = ViewBag.Email as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/images/logo.svg" alt="Cloudsfer" height="36">
+        </div>
+
+        <h1 class="auth-title">Sign In</h1>
+        <p class="auth-subtitle">Use your <strong>&#64;tzunami.com</strong> email to access CloudsferQA.</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="auth-alert auth-alert-error">@ViewBag.Error</div>
+        }
+
+        <form method="post" action="/Auth/Login" autocomplete="on">
+            <input type="hidden" name="returnUrl" value="@(ViewBag.ReturnUrl ?? "")">
+
+            <div class="auth-field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email"
+                       value="@prefillEmail"
+                       placeholder="you@tzunami.com"
+                       required autofocus autocomplete="email">
+            </div>
+
+            <div class="auth-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Your password"
+                       required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="auth-btn">Sign In →</button>
+        </form>
+
+        <div class="auth-footer-link">
+            Don't have an account?
+            <a href="/Auth/Register">Register here</a>
+        </div>
+
+        <div class="auth-footer-brand">Cloudsfer QA Portal · Internal Use Only</div>
+    </div>
+</body>
+</html>

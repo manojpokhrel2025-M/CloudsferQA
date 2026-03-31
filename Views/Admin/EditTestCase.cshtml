@@ -1,0 +1,62 @@
+@model CloudsferQA.Models.TestCase
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Edit Test Case";
+    var modules = ViewBag.Modules as List<string> ?? new List<string>();
+}
+
+<div class="container-fluid px-4 py-4" style="max-width:760px">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 style="font-weight:700;color:#1565C0;margin:0">Edit Test Case — <span style="color:#546E7A">@Model.Id</span></h2>
+        <a href="/Admin/TestCases" style="font-size:13px;color:#546E7A;text-decoration:none">← Back</a>
+    </div>
+
+    <div style="background:#fff;border:1px solid #E0E0E0;border-radius:10px;padding:24px">
+        <form method="post" action="/Admin/EditTestCase">
+            <input type="hidden" name="Id" value="@Model.Id">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Module</label>
+                <input list="moduleList" name="Module" value="@Model.Module" class="form-control" required>
+                <datalist id="moduleList">
+                    @foreach (var m in modules) { <option value="@m"></option> }
+                </datalist>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Submodule</label>
+                <input name="Submodule" value="@Model.Submodule" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Scenario</label>
+                <input name="Scenario" value="@Model.Scenario" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Steps</label>
+                <textarea name="Steps" class="form-control" rows="3">@Model.Steps</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Expected Result</label>
+                <textarea name="ExpectedResult" class="form-control" rows="2">@Model.ExpectedResult</textarea>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Priority</label>
+                <select name="Priority" class="form-select">
+                    @foreach (var p in new[] { "High", "Medium", "Low" })
+                    {
+                        if (p == Model.Priority)
+                        {
+                            <option value="@p" selected>@p</option>
+                        }
+                        else
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="/Admin/TestCases" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

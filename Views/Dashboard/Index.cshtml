@@ -1,0 +1,198 @@
+@model CloudsferQA.Models.ViewModels.DashboardViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "QA Dashboard";
+}
+
+<!-- ── Hero Header ───────────────────────────────────────────────────────── -->
+<div class="dash-hero">
+    <div class="dash-hero-inner">
+        <img src="/images/logo.svg" alt="Cloudsfer" height="34" class="dash-logo">
+        <div>
+            <h1 class="dash-title">QA Results Dashboard</h1>
+            <p class="dash-subtitle">Live results — no login required</p>
+        </div>
+        <a href="/Session/Start" class="dash-start-btn">+ New Session</a>
+    </div>
+</div>
+
+@if (!Model.Sessions.Any())
+{
+    <div class="container-fluid px-4 py-5 text-center">
+        <div class="dash-empty">
+            <div style="font-size:48px;margin-bottom:16px">📋</div>
+            <h3>No test sessions yet</h3>
+            <p class="text-muted mt-2">Start a session to see results here.</p>
+            <a href="/Session/Start" class="btn btn-primary mt-3">Start First Session</a>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ── Session Selector ───────────────────────────────────────────────── -->
+    <div class="session-selector-bar">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <label for="sessionSelect" class="selector-label">View Session:</label>
+                <select id="sessionSelect" class="session-select">
+                    @foreach (var s in Model.Sessions)
+                    {
+                        <option value="@s.Id">
+                            @s.Tester · @s.Version · @s.Environment · @s.StartedAt.ToString("yyyy-MM-dd")
+                        </option>
+                    }
+                </select>
+                <span class="session-meta" id="sessionMeta"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 pb-5" id="dashboardContent">
+
+        <!-- ── KPI Cards ──────────────────────────────────────────────────── -->
+        <div class="row g-3 mb-4 mt-1">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-total">
+                    <div class="kpi-label">Total</div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-pct" id="kpiTotalPct">test cases</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-pass">
+                    <div class="kpi-label">Pass</div>
+                    <div class="kpi-value" id="kpiPass">—</div>
+                    <div class="kpi-pct" id="kpiPassPct">—</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-fail">
+                    <div class="kpi-label">Fail</div>
+                    <div class="kpi-value" id="kpiFail">—</div>
+                    <div class="kpi-pct" id="kpiFailPct">—</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-blocked">
+                    <div class="kpi-label">Blocked</div>
+                    <div class="kpi-value" id="kpiBlocked">—</div>
+                    <div class="kpi-pct" id="kpiBlockedPct">—</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-skip">
+                    <div class="kpi-label">Skip</div>
+                    <div class="kpi-value" id="kpiSkip">—</div>
+                    <div class="kpi-pct" id="kpiSkipPct">—</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-pending">
+                    <div class="kpi-label">Pending</div>
+                    <div class="kpi-value" id="kpiPending">—</div>
+                    <div class="kpi-pct" id="kpiPendingPct">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Progress Strip ────────────────────────────────────────────── -->
+        <div class="progress-strip-wrap mb-4">
+            <div class="progress-strip-bar" id="progressStrip">
+                <div class="ps-segment ps-pass"    id="psPass"    style="width:0%"></div>
+                <div class="ps-segment ps-fail"    id="psFail"    style="width:0%"></div>
+                <div class="ps-segment ps-blocked" id="psBlocked" style="width:0%"></div>
+                <div class="ps-segment ps-skip"    id="psSkip"    style="width:0%"></div>
+            </div>
+            <div class="progress-strip-label" id="progressStripLabel"></div>
+        </div>
+
+        <!-- ── Charts Row 1 ──────────────────────────────────────────────── -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="chart-card">
+                    <div class="chart-title">Result Distribution</div>
+                    <div class="chart-wrap" style="height:260px">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-8">
+                <div class="chart-card">
+                    <div class="chart-title">Pass Rate by Module</div>
+                    <div class="chart-wrap" style="height:260px">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Charts Row 2 ──────────────────────────────────────────────── -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="chart-card">
+                    <div class="chart-title">Results by Module (Absolute Counts)</div>
+                    <div class="chart-wrap" style="height:280px">
+                        <canvas id="stackedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Module Breakdown Table ─────────────────────────────────────── -->
+        <div class="dash-card mb-4">
+            <div class="dash-card-title">Module Breakdown</div>
+            <div class="table-responsive">
+                <table class="module-table" id="moduleTable">
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th class="text-center">Total</th>
+                            <th class="text-center">Pass</th>
+                            <th class="text-center">Fail</th>
+                            <th class="text-center">Blocked</th>
+                            <th class="text-center">Tested</th>
+                            <th style="min-width:160px">Progress</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="moduleTableBody">
+                        <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── Priority Chart + Fail List ────────────────────────────────── -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-title">Results by Priority</div>
+                    <div class="chart-wrap" style="height:280px">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="dash-card h-100">
+                    <div class="dash-card-title">Failed &amp; Blocked Cases</div>
+                    <div class="fail-list" id="failList">
+                        <div class="text-muted text-center py-3">Loading…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Activity ───────────────────────────────────────────── -->
+        <div class="dash-card mb-4">
+            <div class="dash-card-title">Recent Activity</div>
+            <div class="activity-feed" id="activityFeed">
+                <div class="text-muted text-center py-3">Loading…</div>
+            </div>
+        </div>
+
+    </div><!-- /dashboardContent -->
+}
+
+@section Scripts {
+    <script src="/js/dashboard.js"></script>
+}

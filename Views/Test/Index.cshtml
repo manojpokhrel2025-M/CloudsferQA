@@ -1,0 +1,232 @@
+@model CloudsferQA.Models.ViewModels.TestViewModel
+@{
+    Layout = null;
+
+    // Build lookup structures
+    var resultDict = Model.Results.ToDictionary(r => r.TestCaseId);
+
+    // Active modules (in defined order, only those that have test cases)
+    var activeModules = Model.ModuleOrder
+        .Where(m => Model.TestCases.Any(tc => tc.Module == m))
+        .ToList();
+
+    // Group: module → submodule → cases
+    var grouped = activeModules.ToDictionary(
+        m => m,
+        m => Model.TestCases
+            .Where(tc => tc.Module == m)
+            .GroupBy(tc => tc.Submodule)
+            .ToDictionary(g => g.Key, g => g.ToList())
+    );
+
+    // Header stats
+    int totalCases  = Model.TestCases.Count;
+    int passCount   = Model.Results.Count(r => r.Status == "pass");
+    int failCount   = Model.Results.Count(r => r.Status == "fail");
+    int blockedCount = Model.Results.Count(r => r.Status == "blocked");
+    int testedCount  = Model.Results.Count(r => r.Status != "pending");
+    double progressPct = totalCases > 0 ? (double)testedCount / totalCases * 100 : 0;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Session — CloudsferQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+</head>
+<body class="test-body">
+
+<!-- ── Fixed Header ──────────────────────────────────────────────────────── -->
+<header class="test-header">
+    <div class="header-left">
+        <img src="/images/logo.svg" alt="Cloudsfer" height="30" class="header-logo">
+    </div>
+
+    <div class="header-center">
+        <span class="session-info">
+            <strong>@Model.Session.Tester</strong>
+            <span class="sep">·</span>@Model.Session.Version
+            <span class="sep">·</span>@Model.Session.Environment
+        </span>
+        <div class="header-progress-wrap">
+            <div class="header-progress-bar">
+                <div class="header-progress-fill" id="progressBar" style="width:@progressPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+            </div>
+            <span class="progress-label" id="progressLabel">@testedCount / @totalCases tested</span>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <span class="chip chip-pass" id="chipPass">@passCount Pass</span>
+        <span class="chip chip-fail" id="chipFail">@failCount Fail</span>
+        <span class="chip chip-blocked" id="chipBlocked">@blockedCount Blocked</span>
+        <a href="/Test/Export?sessionId=@Model.Session.Id" class="btn-export" target="_blank">↓ Export</a>
+        <a href="/Dashboard" class="btn-export" style="background:rgba(255,255,255,.1)">Dashboard</a>
+        @if (Model.Session.CompletedAt == null)
+        {
+            <form method="post" action="/Session/Complete" style="display:inline;margin:0"
+                  onsubmit="return confirm('Mark this version as completed and start fresh?')">
+                <button type="submit" class="btn-export" style="background:#43A047;border-color:#388E3C;cursor:pointer;font-family:inherit;font-weight:600">
+                    ✓ Complete
+                </button>
+            </form>
+        }
+        else
+        {
+            <span class="btn-export" style="background:#388E3C;border-color:#2E7D32;opacity:.8;cursor:default">✓ Completed</span>
+        }
+        <form method="post" action="/Auth/Logout" style="display:inline;margin:0">
+            <button type="submit" class="btn-export" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);cursor:pointer;font-family:inherit">
+                Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- ── Fixed Sidebar ─────────────────────────────────────────────────────── -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-search-wrap">
+        <input type="text" id="moduleSearch" class="sidebar-search" placeholder="Search modules…" autocomplete="off">
+    </div>
+
+    <div class="module-list" id="moduleList">
+        @foreach (var module in activeModules)
+        {
+            var submodules = grouped[module];
+            <div class="module-group" data-module="@module">
+                <div class="module-header">
+                    <span class="module-name">@module</span>
+                    <span class="module-chevron">▾</span>
+                </div>
+                <div class="module-items">
+                    @foreach (var (submodule, cases) in submodules)
+                    {
+                        int done = cases.Count(tc =>
+                            resultDict.TryGetValue(tc.Id, out var r) && r.Status != "pending");
+                        <div class="submodule-item"
+                             data-module="@module"
+                             data-submodule="@submodule">
+                            <span class="submodule-name">@submodule</span>
+                            <span class="submodule-badge" id="badge-@(module.GetHashCode())-@(submodule.GetHashCode())">@done/@cases.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</nav>
+
+<!-- ── Main Content ───────────────────────────────────────────────────────── -->
+<main class="test-main" id="testMain">
+
+    <div class="content-header" id="contentHeader">
+        <div class="content-header-left">
+            <div class="breadcrumb-text" id="breadcrumb">Select a module from the sidebar</div>
+            <h2 class="content-title" id="currentSubmodule"></h2>
+        </div>
+        <div class="content-header-actions">
+            <button class="btn-bulk btn-bulk-pass" id="btnMarkAllPass">✓ Mark All Pass</button>
+            <button class="btn-bulk btn-bulk-skip" id="btnSkipAll">⊘ Skip All</button>
+        </div>
+    </div>
+
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="pass">Pass</button>
+        <button class="filter-btn" data-filter="fail">Fail</button>
+        <button class="filter-btn" data-filter="blocked">Blocked</button>
+        <button class="filter-btn" data-filter="skip">Skip</button>
+    </div>
+
+    <div class="cards-container" id="cardsContainer">
+        @foreach (var module in activeModules)
+        {
+            var submodules = grouped[module];
+            foreach (var (submodule, cases) in submodules)
+            {
+                foreach (var tc in cases)
+                {
+                    resultDict.TryGetValue(tc.Id, out var result);
+                    var status  = result?.Status ?? "pending";
+                    var notes   = result?.Notes ?? "";
+                    var hasDetails = !string.IsNullOrWhiteSpace(tc.Steps) || !string.IsNullOrWhiteSpace(tc.ExpectedResult);
+
+                    <div class="test-card status-@status"
+                         data-test-id="@tc.Id"
+                         data-module="@module"
+                         data-submodule="@submodule"
+                         data-status="@status"
+                         style="display:none">
+
+                        <div class="card-top-row">
+                            <span class="badge-tc">@tc.Id</span>
+                            <span class="badge-priority priority-@(tc.Priority.ToLower())">@tc.Priority</span>
+                            <span class="badge-status status-badge-@status" id="status-@tc.Id">@status</span>
+                        </div>
+
+                        <div class="card-scenario">@tc.Scenario</div>
+
+                        @if (hasDetails)
+                        {
+                            <div class="card-details" id="details-@tc.Id">
+                                @if (!string.IsNullOrWhiteSpace(tc.Steps))
+                                {
+                                    <div class="detail-block">
+                                        <div class="detail-label">Steps</div>
+                                        <div class="detail-text">@tc.Steps</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(tc.ExpectedResult))
+                                {
+                                    <div class="detail-block">
+                                        <div class="detail-label">Expected Result</div>
+                                        <div class="detail-text">@tc.ExpectedResult</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="card-action-row">
+                            <div class="action-btns">
+                                <button class="btn-action btn-pass @(status == "pass" ? "active" : "")"
+                                        data-test-id="@tc.Id" data-status="pass">Pass</button>
+                                <button class="btn-action btn-fail @(status == "fail" ? "active" : "")"
+                                        data-test-id="@tc.Id" data-status="fail">Fail</button>
+                                <button class="btn-action btn-blocked @(status == "blocked" ? "active" : "")"
+                                        data-test-id="@tc.Id" data-status="blocked">Blocked</button>
+                                <button class="btn-action btn-skip @(status == "skip" ? "active" : "")"
+                                        data-test-id="@tc.Id" data-status="skip">Skip</button>
+                            </div>
+
+                            <input type="text"
+                                   class="notes-input"
+                                   placeholder="Add notes…"
+                                   value="@notes"
+                                   data-test-id="@tc.Id">
+
+                            @if (hasDetails)
+                            {
+                                <button class="btn-details" data-target="details-@tc.Id">Details ▴</button>
+                            }
+                        </div>
+
+                    </div>
+                }
+            }
+        }
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-text">No test cases match the current filter.</div>
+    </div>
+</main>
+
+<script src="/js/test.js?v=2"></script>
+</body>
+</html>
