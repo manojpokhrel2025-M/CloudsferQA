@@ -42,7 +42,7 @@ public class TestController : Controller
         var session = await _db.Sessions.FindAsync(sessionId);
         if (session == null) return RedirectToAction("Start", "Session");
 
-        var testCases = await _db.TestCases.ToListAsync();
+        var testCases = await _db.TestCases.Where(t => !t.IsDeleted).ToListAsync();
         var results   = await _db.Results
             .Where(r => r.SessionId == sessionId)
             .ToListAsync();
@@ -107,17 +107,22 @@ public class TestController : Controller
     // ═══════════════════════════════════════════════════════════════════════
 
     [HttpGet]
-    public async Task<IActionResult> Export(int sessionId)
+    public async Task<IActionResult> Export(int sessionId, [FromQuery] List<string>? modules)
     {
         if (await GetCurrentUserAsync() == null) return RedirectToAction("Login", "Auth");
 
         var session = await _db.Sessions.FindAsync(sessionId);
         if (session == null) return NotFound();
 
-        var testCases   = await _db.TestCases.ToListAsync();
-        var results     = await _db.Results.Where(r => r.SessionId == sessionId).ToListAsync();
-        var resultDict  = results.ToDictionary(r => r.TestCaseId);
-        var moduleOrder = await GetModuleOrderAsync(testCases.Select(t => t.Module).Distinct().ToList());
+        var allTestCases = await _db.TestCases.Where(t => !t.IsDeleted).ToListAsync();
+        var results      = await _db.Results.Where(r => r.SessionId == sessionId).ToListAsync();
+        var resultDict   = results.ToDictionary(r => r.TestCaseId);
+        var fullOrder    = await GetModuleOrderAsync(allTestCases.Select(t => t.Module).Distinct().ToList());
+
+        // Filter to selected modules (if none specified, export all)
+        var exportModules = (modules != null && modules.Count > 0)
+            ? fullOrder.Where(m => modules.Contains(m)).ToList()
+            : fullOrder;
 
         using var wb = new XLWorkbook();
 
@@ -135,7 +140,8 @@ public class TestController : Controller
             ("Version:",     session.Version),
             ("Environment:", session.Environment),
             ("Started At:",  session.StartedAt.ToString("yyyy-MM-dd HH:mm") + " UTC"),
-            ("Exported At:", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") + " UTC")
+            ("Exported At:", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") + " UTC"),
+            ("Modules:",     string.Join(", ", exportModules))
         };
         for (int i = 0; i < meta.Length; i++)
         {
@@ -147,17 +153,17 @@ public class TestController : Controller
         string[] hdr = { "Module", "Total", "Pass", "Fail", "Blocked", "Skip", "Pending", "Pass Rate" };
         for (int i = 0; i < hdr.Length; i++)
         {
-            var c = sw.Cell(8, i + 1);
+            var c = sw.Cell(9, i + 1);
             c.Value = hdr[i];
             c.Style.Font.Bold = true;
             c.Style.Fill.BackgroundColor = XLColor.FromHtml("#1565C0");
             c.Style.Font.FontColor = XLColor.White;
         }
 
-        int row = 9;
-        foreach (var module in moduleOrder)
+        int row = 10;
+        foreach (var module in exportModules)
         {
-            var mc = testCases.Where(tc => tc.Module == module).ToList();
+            var mc = allTestCases.Where(tc => tc.Module == module).ToList();
             if (mc.Count == 0) continue;
 
             int mp = 0, mf = 0, mb = 0, ms = 0, mpend = 0;
@@ -177,16 +183,20 @@ public class TestController : Controller
         }
         sw.Columns().AdjustToContents();
 
-        // ── Per-module sheets ─────────────────────────────────────────────
+        // ── Per-module sheets — grouped by submodule, alternating row colors ──
         string[] cols = { "TC ID", "Submodule", "Scenario", "Steps", "Expected Result", "Priority", "Status", "Notes", "Tested At" };
+        var colorA = XLColor.FromHtml("#F5F5F5"); // light grey
+        var colorB = XLColor.White;
 
-        foreach (var module in moduleOrder)
+        foreach (var module in exportModules)
         {
-            var mc = testCases.Where(tc => tc.Module == module).ToList();
+            var mc = allTestCases.Where(tc => tc.Module == module).OrderBy(tc => tc.Submodule).ThenBy(tc => tc.Id).ToList();
             if (mc.Count == 0) continue;
 
-            var ws = wb.Worksheets.Add(module.Length > 31 ? module[..31] : module);
+            var sheetName = module.Length > 31 ? module[..31] : module;
+            var ws = wb.Worksheets.Add(sheetName);
 
+            // Header row
             for (int i = 0; i < cols.Length; i++)
             {
                 var c = ws.Cell(1, i + 1);
@@ -197,28 +207,61 @@ public class TestController : Controller
             }
 
             int wr = 2;
-            foreach (var tc in mc)
-            {
-                resultDict.TryGetValue(tc.Id, out var r);
-                ws.Cell(wr, 1).Value = tc.Id;          ws.Cell(wr, 2).Value = tc.Submodule;
-                ws.Cell(wr, 3).Value = tc.Scenario;    ws.Cell(wr, 4).Value = tc.Steps;
-                ws.Cell(wr, 5).Value = tc.ExpectedResult; ws.Cell(wr, 6).Value = tc.Priority;
-                ws.Cell(wr, 7).Value = r?.Status ?? "pending";
-                ws.Cell(wr, 8).Value = r?.Notes  ?? string.Empty;
-                ws.Cell(wr, 9).Value = r?.TestedAt?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+            int submoduleIndex = 0;
+            string? currentSubmodule = null;
 
-                ws.Cell(wr, 7).Style.Fill.BackgroundColor = (r?.Status ?? "pending") switch
+            var submoduleGroups = mc.GroupBy(tc => tc.Submodule).OrderBy(g => g.Key).ToList();
+
+            foreach (var subGroup in submoduleGroups)
+            {
+                // Alternating color per submodule group
+                var rowColor = submoduleIndex % 2 == 0 ? colorA : colorB;
+                submoduleIndex++;
+
+                // Submodule label row
+                var labelCell = ws.Cell(wr, 1);
+                ws.Range(wr, 1, wr, cols.Length).Merge();
+                labelCell.Value = $"  {subGroup.Key}";
+                labelCell.Style.Font.Bold = true;
+                labelCell.Style.Font.FontColor = XLColor.FromHtml("#1565C0");
+                labelCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E3F2FD");
+                labelCell.Style.Alignment.Indent = 1;
+                wr++;
+
+                foreach (var tc in subGroup)
                 {
-                    "pass"    => XLColor.FromHtml("#E8F5E9"),
-                    "fail"    => XLColor.FromHtml("#FFEBEE"),
-                    "blocked" => XLColor.FromHtml("#FFF3E0"),
-                    "skip"    => XLColor.FromHtml("#F5F5F5"),
-                    _         => XLColor.White
-                };
+                    resultDict.TryGetValue(tc.Id, out var r);
+                    ws.Cell(wr, 1).Value = tc.Id;
+                    ws.Cell(wr, 2).Value = tc.Submodule;
+                    ws.Cell(wr, 3).Value = tc.Scenario;
+                    ws.Cell(wr, 4).Value = tc.Steps;
+                    ws.Cell(wr, 5).Value = tc.ExpectedResult;
+                    ws.Cell(wr, 6).Value = tc.Priority;
+                    ws.Cell(wr, 7).Value = r?.Status ?? "pending";
+                    ws.Cell(wr, 8).Value = r?.Notes  ?? string.Empty;
+                    ws.Cell(wr, 9).Value = r?.TestedAt?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+
+                    // Row background alternates per submodule group
+                    for (int col = 1; col <= cols.Length; col++)
+                        ws.Cell(wr, col).Style.Fill.BackgroundColor = rowColor;
+
+                    // Override status cell color
+                    ws.Cell(wr, 7).Style.Fill.BackgroundColor = (r?.Status ?? "pending") switch
+                    {
+                        "pass"    => XLColor.FromHtml("#C8E6C9"),
+                        "fail"    => XLColor.FromHtml("#FFCDD2"),
+                        "blocked" => XLColor.FromHtml("#FFE0B2"),
+                        "skip"    => XLColor.FromHtml("#ECEFF1"),
+                        _         => XLColor.FromHtml("#FFF9C4")
+                    };
+                    wr++;
+                }
+
+                // Empty separator row between submodule groups
                 wr++;
             }
 
-            ws.Column(3).Width = 40;
+            ws.Column(3).Width = 45;
             ws.Column(4).Width = 40;
             ws.Column(5).Width = 40;
             ws.Columns(1, 2).AdjustToContents();
@@ -227,9 +270,76 @@ public class TestController : Controller
 
         using var stream = new MemoryStream();
         wb.SaveAs(stream);
-        var name = $"CloudsferQA_{session.Tester.Split('@')[0]}_{session.Version.Replace(" ", "_")}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
+        var suffix = exportModules.Count == fullOrder.Count ? "AllModules" : $"{exportModules.Count}Modules";
+        var name = $"CloudsferQA_{session.Tester.Split('@')[0]}_{session.Version.Replace(" ", "_")}_{suffix}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
         return File(stream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportCsv(int sessionId, [FromQuery] List<string>? modules)
+    {
+        if (await GetCurrentUserAsync() == null) return RedirectToAction("Login", "Auth");
+
+        var session = await _db.Sessions.FindAsync(sessionId);
+        if (session == null) return NotFound();
+
+        var allTestCases = await _db.TestCases.Where(t => !t.IsDeleted).ToListAsync();
+        var results      = await _db.Results.Where(r => r.SessionId == sessionId).ToListAsync();
+        var resultDict   = results.ToDictionary(r => r.TestCaseId);
+        var fullOrder    = await GetModuleOrderAsync(allTestCases.Select(t => t.Module).Distinct().ToList());
+
+        var exportModules = (modules != null && modules.Count > 0)
+            ? fullOrder.Where(m => modules.Contains(m)).ToList()
+            : fullOrder;
+
+        static string CsvCell(string? v) =>
+            v == null ? "" : v.Contains(',') || v.Contains('"') || v.Contains('\n')
+                ? $"\"{v.Replace("\"", "\"\"")}\"" : v;
+
+        var sb = new System.Text.StringBuilder();
+
+        // File header info
+        sb.AppendLine($"CloudsferQA Test Session Export");
+        sb.AppendLine($"Tester,{CsvCell(session.Tester)}");
+        sb.AppendLine($"Version,{CsvCell(session.Version)}");
+        sb.AppendLine($"Environment,{CsvCell(session.Environment)}");
+        sb.AppendLine($"Started At,{session.StartedAt:yyyy-MM-dd HH:mm} UTC");
+        sb.AppendLine($"Exported At,{DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC");
+        sb.AppendLine($"Modules,{CsvCell(string.Join(" | ", exportModules))}");
+        sb.AppendLine();
+
+        // Column headers
+        sb.AppendLine("TC ID,Module,Submodule,Scenario,Steps,Expected Result,Priority,Status,Notes,Tested At");
+
+        foreach (var module in exportModules)
+        {
+            var mc = allTestCases.Where(tc => tc.Module == module)
+                                 .OrderBy(tc => tc.Submodule).ThenBy(tc => tc.Id).ToList();
+            if (mc.Count == 0) continue;
+
+            foreach (var tc in mc)
+            {
+                resultDict.TryGetValue(tc.Id, out var r);
+                sb.AppendLine(string.Join(",",
+                    CsvCell(tc.Id),
+                    CsvCell(tc.Module),
+                    CsvCell(tc.Submodule),
+                    CsvCell(tc.Scenario),
+                    CsvCell(tc.Steps),
+                    CsvCell(tc.ExpectedResult),
+                    CsvCell(tc.Priority),
+                    CsvCell(r?.Status ?? "pending"),
+                    CsvCell(r?.Notes ?? ""),
+                    CsvCell(r?.TestedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")
+                ));
+            }
+        }
+
+        var suffix = exportModules.Count == fullOrder.Count ? "AllModules" : $"{exportModules.Count}Modules";
+        var name = $"CloudsferQA_{session.Tester.Split('@')[0]}_{session.Version.Replace(" ", "_")}_{suffix}_{DateTime.UtcNow:yyyyMMdd}.csv";
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return File(bytes, "text/csv", name);
     }
 
     // ═══════════════════════════════════════════════════════════════════════

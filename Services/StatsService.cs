@@ -22,7 +22,7 @@ public class StatsService
         var session = await _db.Sessions.FindAsync(sessionId);
         if (session == null) return null;
 
-        var allTestCases = await _db.TestCases.ToListAsync();
+        var allTestCases = await _db.TestCases.Where(t => !t.IsDeleted).ToListAsync();
         var results      = await _db.Results
             .Where(r => r.SessionId == sessionId)
             .ToListAsync();

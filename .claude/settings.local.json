@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(taskkill //F //IM CloudsferQA.exe)",
+      "Bash(dotnet build:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/Auth/Login)",
+      "Bash(start \"\" \"http://localhost:5000/Auth/Login\")",
+      "Bash(start \"\" \"http://localhost:5000/Admin/TestCases\")",
+      "Bash(start \"\" \"http://localhost:5000\")",
+      "Bash(git add:*)"
+    ]
+  }
+}

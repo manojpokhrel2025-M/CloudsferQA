@@ -90,7 +90,7 @@ public class AdminController : Controller
             .Where(r => sessionIds.Contains(r.SessionId))
             .ToListAsync();
 
-        var totalCases = await _db.TestCases.CountAsync();
+        var totalCases = await _db.TestCases.CountAsync(t => !t.IsDeleted);
 
         var summaries = sessions.Select(s =>
         {
@@ -268,7 +268,7 @@ public class AdminController : Controller
         newName = newName.Trim();
         if (string.IsNullOrWhiteSpace(newName)) return BadRequest();
 
-        var cases = await _db.TestCases.Where(t => t.Module == oldName).ToListAsync();
+        var cases = await _db.TestCases.Where(t => t.Module == oldName && !t.IsDeleted).ToListAsync();
         cases.ForEach(t => t.Module = newName);
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Module renamed to \"{newName}\".";
@@ -280,10 +280,10 @@ public class AdminController : Controller
     {
         if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
 
-        var cases = await _db.TestCases.Where(t => t.Module == moduleName).ToListAsync();
-        _db.TestCases.RemoveRange(cases);
+        var cases = await _db.TestCases.Where(t => t.Module == moduleName && !t.IsDeleted).ToListAsync();
+        cases.ForEach(t => { t.IsDeleted = true; t.DeletedAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
-        TempData["Success"] = $"Module \"{moduleName}\" and all its test cases deleted.";
+        TempData["Success"] = $"Module \"{moduleName}\" moved to Bin.";
         return RedirectToAction("TestCases");
     }
 
@@ -296,7 +296,7 @@ public class AdminController : Controller
         newName = newName.Trim();
         if (string.IsNullOrWhiteSpace(newName)) return BadRequest();
 
-        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.Submodule == oldName).ToListAsync();
+        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.Submodule == oldName && !t.IsDeleted).ToListAsync();
         cases.ForEach(t => t.Submodule = newName);
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Submodule renamed to \"{newName}\".";
@@ -308,10 +308,10 @@ public class AdminController : Controller
     {
         if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
 
-        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.Submodule == submoduleName).ToListAsync();
-        _db.TestCases.RemoveRange(cases);
+        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.Submodule == submoduleName && !t.IsDeleted).ToListAsync();
+        cases.ForEach(t => { t.IsDeleted = true; t.DeletedAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
-        TempData["Success"] = $"Submodule \"{submoduleName}\" deleted.";
+        TempData["Success"] = $"Submodule \"{submoduleName}\" moved to Bin.";
         return RedirectToAction("TestCases");
     }
 
@@ -323,7 +323,7 @@ public class AdminController : Controller
         var user = await RequireAdminOrSubAdminAsync();
         if (user == null) return RedirectToAction("Login", "Auth");
         ViewBag.CurrentUser = user;
-        ViewBag.Modules     = (await _db.TestCases.Select(t => t.Module).Distinct().OrderBy(m => m).ToListAsync());
+        ViewBag.Modules     = (await _db.TestCases.Where(t => !t.IsDeleted).Select(t => t.Module).Distinct().OrderBy(m => m).ToListAsync());
         ViewBag.Module      = moduleName;
         ViewBag.Submodule   = submoduleName;
         return View(new TestCase { Module = moduleName, Submodule = submoduleName });
@@ -342,7 +342,7 @@ public class AdminController : Controller
             .ToUpper();
         if (prefix.Length < 2) prefix = tc.Module.Replace(" ", "").ToUpper()[..Math.Min(3, tc.Module.Replace(" ", "").Length)];
 
-        var existing = await _db.TestCases.Where(t => t.Id.StartsWith(prefix)).Select(t => t.Id).ToListAsync();
+        var existing = await _db.TestCases.Where(t => t.Id.StartsWith(prefix)).Select(t => t.Id).ToListAsync(); // include deleted for ID uniqueness
         int next = existing
             .Select(id => { int.TryParse(id.Replace(prefix + "-", ""), out var n); return n; })
             .DefaultIfEmpty(0).Max() + 1;
@@ -352,6 +352,17 @@ public class AdminController : Controller
         tc.ExpectedResult ??= string.Empty;
 
         _db.TestCases.Add(tc);
+
+        // If this is a brand-new module, append it at the end of the order list
+        bool moduleExists = await _db.ModuleOrders.AnyAsync(m => m.ModuleName == tc.Module);
+        if (!moduleExists)
+        {
+            int maxOrder = await _db.ModuleOrders.AnyAsync()
+                ? await _db.ModuleOrders.MaxAsync(m => m.SortOrder)
+                : -1;
+            _db.ModuleOrders.Add(new CloudsferQA.Models.ModuleOrder { ModuleName = tc.Module, SortOrder = maxOrder + 1 });
+        }
+
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Test case {tc.Id} added.";
         return RedirectToAction("TestCases");
@@ -398,9 +409,48 @@ public class AdminController : Controller
         var tc = await _db.TestCases.FindAsync(id);
         if (tc == null) return NotFound();
 
-        _db.TestCases.Remove(tc);
+        tc.IsDeleted = true;
+        tc.DeletedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        TempData["Success"] = $"Test case {id} deleted.";
+        TempData["Success"] = $"Test case {id} moved to Bin.";
+        return RedirectToAction("TestCases");
+    }
+
+    // ── Bin ──────────────────────────────────────────────────────────────────
+
+    [HttpPost]
+    public async Task<IActionResult> RestoreModule(string moduleName)
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.IsDeleted).ToListAsync();
+        cases.ForEach(t => { t.IsDeleted = false; t.DeletedAt = null; });
+        await _db.SaveChangesAsync();
+        TempData["Success"] = $"Module \"{moduleName}\" restored.";
+        return RedirectToAction("TestCases");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PermanentDeleteModule(string moduleName)
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.IsDeleted).ToListAsync();
+        _db.TestCases.RemoveRange(cases);
+        await _db.SaveChangesAsync();
+        TempData["Success"] = $"Module \"{moduleName}\" permanently deleted.";
+        return RedirectToAction("TestCases");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EmptyBin()
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var cases = await _db.TestCases.Where(t => t.IsDeleted).ToListAsync();
+        _db.TestCases.RemoveRange(cases);
+        await _db.SaveChangesAsync();
+        TempData["Success"] = "Bin emptied permanently.";
         return RedirectToAction("TestCases");
     }
 

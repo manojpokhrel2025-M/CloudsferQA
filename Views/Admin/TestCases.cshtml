@@ -6,6 +6,7 @@
     var savedOrder = ViewBag.ModuleOrder as Dictionary<string, int> ?? new Dictionary<string, int>();
 
     var grouped = Model
+        .Where(t => !t.IsDeleted)
         .GroupBy(t => t.Module)
         .OrderBy(g => savedOrder.TryGetValue(g.Key, out var o) ? o : int.MaxValue)
         .ThenBy(g => g.Key)
@@ -45,18 +46,34 @@
     </div>
 
     <!-- Add Module inline form (hidden by default) -->
-    <div id="addModuleForm" style="display:none;background:#F5F5F5;border:1px solid #E0E0E0;border-radius:8px;padding:16px;margin-bottom:16px">
-        <strong style="font-size:13px">Add New Module</strong>
-        <form method="post" action="/Admin/AddTestCase" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <input name="moduleName" placeholder="Module name" class="form-control form-control-sm" style="max-width:200px" required>
-            <input name="submoduleName" placeholder="First submodule name" class="form-control form-control-sm" style="max-width:200px" required>
-            <input name="Scenario" placeholder="First test case scenario" class="form-control form-control-sm" style="max-width:300px" required>
-            <select name="Priority" class="form-select form-select-sm" style="max-width:120px">
-                <option>High</option><option selected>Medium</option><option>Low</option>
-            </select>
-            <button type="submit" class="btn btn-sm btn-success">Add</button>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('addModuleForm').style.display='none'">Cancel</button>
-        </form>
+    <div id="addModuleForm" style="display:none;background:#F8F9FA;border:1px solid #DEE2E6;border-radius:10px;margin-bottom:16px;overflow:hidden">
+
+        <!-- Sticky header with title + action buttons -->
+        <div style="position:sticky;top:0;z-index:10;background:#1565C0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:14px;font-weight:700;color:#fff">Add New Module</span>
+            <div style="display:flex;gap:8px;align-items:center">
+                <div id="addModuleStatus" style="font-size:12px;color:#FFCC80;display:none"></div>
+                <button type="button" onclick="submitNewModule()" class="btn btn-sm btn-success" style="padding:4px 16px">Save Module</button>
+                <button type="button" onclick="cancelAddModule()" class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;padding:4px 12px">Cancel</button>
+            </div>
+        </div>
+
+        <div style="padding:20px">
+            <!-- Module name -->
+            <div style="margin-bottom:14px">
+                <label style="font-size:12px;font-weight:600;color:#546E7A;display:block;margin-bottom:4px">MODULE NAME</label>
+                <input id="newModuleName" placeholder="e.g. Registration &amp; Activation" class="form-control form-control-sm" style="max-width:320px" required>
+            </div>
+
+            <!-- Submodules list -->
+            <div style="font-size:12px;font-weight:600;color:#546E7A;margin-bottom:8px">SUBMODULES</div>
+            <div id="submoduleList"></div>
+
+            <!-- Add submodule button -->
+            <button type="button" onclick="addSubmoduleRow()" style="margin-top:6px;background:none;border:1px dashed #90A4AE;border-radius:6px;color:#546E7A;font-size:12px;padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:5px">
+                <span style="font-size:16px;line-height:1">+</span> Add Submodule
+            </button>
+        </div>
     </div>
 
     <!-- Module accordion (drag to reorder) -->
@@ -177,6 +194,77 @@
         </div>
     }
     </div>
+
+    <!-- ── Bin Section ────────────────────────────────────────────────── -->
+    @{
+        var deletedGrouped = Model.Where(t => t.IsDeleted)
+            .GroupBy(t => t.Module)
+            .OrderBy(g => g.Key)
+            .ToList();
+    }
+    <div style="margin-top:32px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:18px">🗑</span>
+                <span style="font-size:15px;font-weight:700;color:#546E7A">Bin</span>
+                <span style="font-size:11px;background:#ECEFF1;color:#78909C;padding:2px 8px;border-radius:10px">@deletedGrouped.Count module(s)</span>
+            </div>
+            @if (deletedGrouped.Any())
+            {
+                <form method="post" action="/Admin/EmptyBin" onsubmit="return confirm('Permanently delete everything in the Bin? This cannot be undone.')">
+                    <button type="submit" style="font-size:11px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Empty Bin</button>
+                </form>
+            }
+        </div>
+
+        @if (!deletedGrouped.Any())
+        {
+            <div style="background:#FAFAFA;border:1px dashed #CFD8DC;border-radius:10px;padding:24px;text-align:center;color:#90A4AE;font-size:13px">
+                Bin is empty — deleted modules will appear here
+            </div>
+        }
+        else
+        {
+            @foreach (var binModule in deletedGrouped)
+            {
+                var binCount = binModule.Count();
+                var deletedTime = binModule.Max(t => t.DeletedAt);
+                <div style="border:1px solid #ECEFF1;border-radius:10px;overflow:hidden;margin-bottom:8px;opacity:0.85">
+                    <div style="background:#ECEFF1;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <span style="font-size:13px;font-weight:600;color:#546E7A">@binModule.Key</span>
+                            <span style="font-size:11px;background:#CFD8DC;color:#546E7A;padding:2px 8px;border-radius:10px">@binCount test case(s)</span>
+                            @if (deletedTime.HasValue)
+                            {
+                                <span style="font-size:11px;color:#90A4AE">Deleted @deletedTime.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
+                            }
+                        </div>
+                        <div style="display:flex;gap:6px">
+                            <form method="post" action="/Admin/RestoreModule" style="margin:0">
+                                <input type="hidden" name="moduleName" value="@binModule.Key">
+                                <button type="submit" style="font-size:11px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Restore</button>
+                            </form>
+                            <form method="post" action="/Admin/PermanentDeleteModule" style="margin:0"
+                                  onsubmit="return confirm('Permanently delete module &quot;@binModule.Key&quot; and all its test cases? This cannot be undone.')">
+                                <input type="hidden" name="moduleName" value="@binModule.Key">
+                                <button type="submit" style="font-size:11px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Delete Forever</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div style="padding:8px 16px 8px 24px;background:#FAFAFA">
+                        @foreach (var sub in binModule.GroupBy(t => t.Submodule).OrderBy(g => g.Key))
+                        {
+                            <div style="font-size:12px;color:#78909C;padding:3px 0">
+                                <span style="font-weight:600">@sub.Key</span>
+                                <span style="color:#B0BEC5;margin-left:6px">@sub.Count() case(s)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
 </div>
 
 <style>
@@ -225,7 +313,126 @@
     }
     function showAddModule() {
         const f = document.getElementById('addModuleForm');
-        f.style.display = f.style.display === 'none' ? '' : 'none';
+        if (f.style.display === 'none' || f.style.display === '') {
+            f.style.display = 'block';
+            document.getElementById('newModuleName').value = '';
+            document.getElementById('submoduleList').innerHTML = '';
+            document.getElementById('addModuleStatus').style.display = 'none';
+            addSubmoduleRow(); // start with one row
+        } else {
+            f.style.display = 'none';
+        }
+    }
+
+    function addSubmoduleRow() {
+        const list = document.getElementById('submoduleList');
+        const idx = list.children.length + 1;
+        const row = document.createElement('div');
+        row.className = 'submodule-row';
+        row.style.cssText = 'background:#fff;border:1px solid #E0E0E0;border-radius:8px;padding:12px 14px;margin-bottom:8px';
+        row.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <span style="font-size:12px;font-weight:600;color:#37474F">Submodule ${idx}</span>
+                <button type="button" onclick="removeSubmoduleRow(this)" style="background:none;border:none;color:#EF5350;font-size:18px;line-height:1;cursor:pointer;padding:0" title="Remove">×</button>
+            </div>
+            <div style="margin-bottom:10px">
+                <label style="font-size:11px;color:#90A4AE;display:block;margin-bottom:3px">Submodule Name</label>
+                <input class="form-control form-control-sm sub-name" placeholder="e.g. Account Registration" style="max-width:280px" required>
+            </div>
+            <div>
+                <label style="font-size:11px;color:#90A4AE;display:block;margin-bottom:6px">Scenarios</label>
+                <div class="scenario-list"></div>
+                <button type="button" onclick="addScenarioRow(this)" style="margin-top:5px;background:none;border:1px dashed #B0BEC5;border-radius:5px;color:#78909C;font-size:11px;padding:3px 10px;cursor:pointer">+ Add Scenario</button>
+            </div>`;
+        list.appendChild(row);
+        renumberRows();
+        // auto-add first scenario row
+        addScenarioRow(row.querySelector('button[onclick^="addScenario"]'));
+    }
+
+    function addScenarioRow(btn) {
+        const scenarioList = btn.previousElementSibling;
+        const sIdx = scenarioList.children.length + 1;
+        const sRow = document.createElement('div');
+        sRow.className = 'scenario-row';
+        sRow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px';
+        sRow.innerHTML = `
+            <span style="font-size:11px;color:#B0BEC5;min-width:14px">${sIdx}.</span>
+            <input class="form-control form-control-sm sc-scenario" placeholder="e.g. Verify user can register with valid email" required style="flex:1">
+            <select class="form-select form-select-sm sc-priority" style="width:100px">
+                <option>High</option><option selected>Medium</option><option>Low</option>
+            </select>
+            <button type="button" onclick="removeScenarioRow(this)" style="background:none;border:none;color:#EF5350;font-size:16px;line-height:1;cursor:pointer;padding:0;flex-shrink:0" title="Remove">×</button>`;
+        scenarioList.appendChild(sRow);
+        renumberScenarios(scenarioList);
+    }
+
+    function removeScenarioRow(btn) {
+        const scenarioList = btn.closest('.scenario-row').parentElement;
+        btn.closest('.scenario-row').remove();
+        renumberScenarios(scenarioList);
+    }
+
+    function renumberScenarios(list) {
+        list.querySelectorAll('.scenario-row').forEach((row, i) => {
+            row.querySelector('span').textContent = `${i + 1}.`;
+        });
+    }
+
+    function removeSubmoduleRow(btn) {
+        btn.closest('.submodule-row').remove();
+        renumberRows();
+    }
+
+    function renumberRows() {
+        document.querySelectorAll('#submoduleList .submodule-row').forEach((row, i) => {
+            row.querySelector('span').textContent = `Submodule ${i + 1}`;
+        });
+    }
+
+    function cancelAddModule() {
+        document.getElementById('addModuleForm').style.display = 'none';
+    }
+
+    async function submitNewModule() {
+        const moduleName = document.getElementById('newModuleName').value.trim();
+        const status = document.getElementById('addModuleStatus');
+        if (!moduleName) { status.style.display='block'; status.textContent='Please enter a module name.'; return; }
+
+        const subRows = document.querySelectorAll('#submoduleList .submodule-row');
+        if (subRows.length === 0) { status.style.display='block'; status.textContent='Please add at least one submodule.'; return; }
+
+        // collect all entries: { sub, scenario, priority }
+        const entries = [];
+        for (const row of subRows) {
+            const sub = row.querySelector('.sub-name').value.trim();
+            if (!sub) { status.style.display='block'; status.textContent='Please fill in all submodule names.'; return; }
+            const scenarioRows = row.querySelectorAll('.scenario-row');
+            if (scenarioRows.length === 0) { status.style.display='block'; status.textContent=`Please add at least one scenario for "${sub}".`; return; }
+            for (const sr of scenarioRows) {
+                const scenario = sr.querySelector('.sc-scenario').value.trim();
+                const priority = sr.querySelector('.sc-priority').value;
+                if (!scenario) { status.style.display='block'; status.textContent=`Please fill in all scenarios for "${sub}".`; return; }
+                entries.push({ sub, scenario, priority });
+            }
+        }
+
+        status.style.display = 'none';
+        const btn = document.querySelector('#addModuleForm .btn-success');
+        btn.disabled = true; btn.textContent = 'Adding...';
+
+        for (const e of entries) {
+            const fd = new FormData();
+            fd.append('Module', moduleName);
+            fd.append('Submodule', e.sub);
+            fd.append('Scenario', e.scenario);
+            fd.append('Priority', e.priority);
+            fd.append('Steps', '');
+            fd.append('ExpectedResult', '');
+            await fetch('/Admin/AddTestCase', { method: 'POST', body: fd });
+        }
+
+        window.location.reload();
     }
 </script>
 }
