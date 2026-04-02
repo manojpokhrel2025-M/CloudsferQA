@@ -9,6 +9,7 @@ public class TestCase
     public string Steps { get; set; } = string.Empty;
     public string ExpectedResult { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
+    public string Group { get; set; } = string.Empty;
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
 }

@@ -11,7 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<TestResult>  Results      => Set<TestResult>();
     public DbSet<TestCase>    TestCases    => Set<TestCase>();
     public DbSet<User>        Users        => Set<User>();
-    public DbSet<ModuleOrder> ModuleOrders => Set<ModuleOrder>();
+    public DbSet<ModuleOrder>  ModuleOrders  => Set<ModuleOrder>();
+    public DbSet<ActivityLog>  ActivityLogs  => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,0 +1,193 @@
+﻿Module,Submodule,Scenario,Steps,ExpectedResult,Priority
+Report Testing,BIM360 to Azure Blob,Single Project Backup - Verify Report,"1. Run Single Project Backup BIM360 to Azure Blob
+2. Verify download from Cloudsfer UI
+3. Verify report email received
+4. Download CSV from email URL
+5. Verify report name and all details
+6. Compare old and new report
+7. Verify version numbers
+8. Verify URL expires in 72 hours
+9. Verify file metadata",Download works. Email received. CSV accurate. Metadata matches. URL expires in 72 hours.,High
+Report Testing,BIM360 to Azure Blob,Multiple Projects 5 - Verify Report,"1. Run backup for 5 projects BIM360 to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 5 projects in report. Email received. CSV correct.,High
+Report Testing,BIM360 to Azure Blob,Zip Files - Verify Report,"1. Run backup of zip files BIM360 to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify CSV details",Zip files shown correctly. Metadata accurate.,Medium
+Report Testing,BIM360 to Azure Blob,Deep Folder Hierarchy - Verify Report,"1. Run backup with deep folder structure BIM360 to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify folder hierarchy in CSV",Deep folder structure reflected correctly. Metadata accurate.,High
+Report Testing,BIM360 to Azure Blob,Large Size Files - Verify Report,"1. Run backup of large files 1GB 5GB 10GB BIM360 to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify large size report
+5. Verify file size in CSV",Large file sizes shown accurately. Large report downloads successfully.,High
+Report Testing,BIM360 to Azure Blob,Auto Backup - Verify Report,"1. Configure Auto Backup BIM360 to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify CSV details",Auto backup report generated. Email received. Details correct.,High
+Report Testing,BIM360 to Box,Multiple Projects 5 - Verify Report,"1. Run backup for 5 projects BIM360 to Box
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 5 projects in report. CSV accurate.,High
+Report Testing,BIM360 to Box,Folders Characters Too Long - Verify Report,"1. Run migration with long folder names BIM360 to Box
+2. Verify status shows Completed with error
+3. Verify report email
+4. Check CSV reflects error",Report shows error for long folder names. Status reflects failure.,Medium
+Report Testing,BIM360 to Egnyte,Multiple Projects 10 - Verify Report,"1. Run backup for 10 projects BIM360 to Egnyte
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 10 projects in report. Email received. CSV accurate.,High
+Report Testing,BIM360 to Egnyte,Nested Folders - Verify Report,"1. Run backup with nested folders BIM360 to Egnyte
+2. Verify download
+3. Verify report email
+4. Verify nested structure in CSV",Nested folders shown correctly. Metadata accurate.,Medium
+Report Testing,BIM360 to S3 Compatible,Deep Folder Hierarchy - Verify Report,"1. Run backup with deep hierarchy BIM360 to S3 Compatible
+2. Verify download
+3. Verify report email
+4. Verify CSV details",Deep folder hierarchy reflected in report. Metadata accurate.,High
+Report Testing,BIM360 to Gdrive,Huge Files - Verify Report,"1. Run backup of huge files BIM360 to Gdrive
+2. Verify download
+3. Verify report email
+4. Verify large size report
+5. Verify file sizes in CSV",Huge files shown correctly. Large report downloads successfully.,High
+Report Testing,BIM360 to Gdrive,Files Characters Too Long - Verify Report,"1. Run migration with long file names BIM360 to Gdrive
+2. Verify migration status
+3. Verify report email
+4. Check CSV reflects error",Report shows error for long file names. Status reflects failure.,Medium
+Report Testing,BIM360 to File System,Huge Folders and Files - Verify Report,"1. Run backup with huge folders BIM360 to File System
+2. Verify download
+3. Verify report email
+4. Verify large size report
+5. Verify CSV metadata",Report shows all folders and files. Large report downloads correctly.,High
+Report Testing,BIM360 to File System,Files With Different Versions - Verify Report,"1. Run backup of versioned files BIM360 to File System
+2. Verify download
+3. Verify report email
+4. Verify version numbers in CSV",All versions shown. Version numbers correct e.g. 1 2 3 6.,High
+Report Testing,BIM360 to File System,File Type Variations - Verify Report,"1. Run backup of mixed file types BIM360 to File System
+2. Verify download
+3. Verify report email
+4. Verify all file types in CSV",All file types reflected correctly. Metadata accurate.,Medium
+Report Testing,BIM360 to File System,Nested Folders - Verify Report,"1. Run backup with nested folders BIM360 to File System
+2. Verify download
+3. Verify report email
+4. Verify folder structure in CSV",Nested folder structure reflected correctly.,Medium
+Report Testing,BIM360 to File System,Folders Characters Too Long - Verify Report,"1. Run migration with long folder names BIM360 to File System
+2. Verify status Completed with error
+3. Verify report email
+4. Verify CSV shows failed status",Report shows failed. Error: Cloudsfer failed to create the root folder.,High
+Report Testing,BIM360 to File System,Files Characters Too Long - Verify Report,"1. Run migration with long file names BIM360 to File System
+2. Verify status Completed with error
+3. Verify report email
+4. Verify CSV shows failed status",Report shows failed status for long file name migration.,High
+Report Testing,BIM360 to Amazon S3,Huge Files - Verify Report,"1. Run backup of huge files BIM360 to Amazon S3
+2. Verify download
+3. Verify report email
+4. Verify large report
+5. Verify file sizes in CSV",Huge files shown correctly. Large report downloads successfully.,High
+Report Testing,BIM360 to Amazon S3,Multiple Projects 10 - Verify Report,"1. Run backup for 10 projects BIM360 to Amazon S3
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 10 projects in report. CSV accurate.,High
+Report Testing,BIM360 to Amazon S3,Auto Backup - Verify Report,"1. Configure Auto Backup BIM360 to Amazon S3
+2. Verify download
+3. Verify report email
+4. Verify CSV details",Auto backup report generated correctly. Email received.,High
+Report Testing,BIM360 to S3 Amazon,Large Size Files - Verify Report,"1. Run backup of large files BIM360 to S3 Amazon
+2. Verify download
+3. Verify report email
+4. Verify file sizes in CSV",Large files shown accurately. Report metadata correct.,High
+Report Testing,BIM360 to BIM360,0 KB Files - Verify Report,"1. Run backup of 0 KB files BIM360 to BIM360
+2. Verify download
+3. Verify report email
+4. Verify 0 KB files in CSV",0 KB files handled correctly. Size shows 0.,Medium
+Report Testing,BIM360 to BIM360,File Type Variations - Verify Report,"1. Run backup of mixed file types BIM360 to BIM360
+2. Verify download
+3. Verify report email
+4. Verify all file types in CSV",All file types reflected correctly in report.,Medium
+Report Testing,Egnyte to Azure Blob,Single Project Backup - Verify Report,"1. Run Single Project Backup Egnyte to Azure Blob
+2. Verify download
+3. Verify report email
+4. Verify CSV details and metadata",Report generated correctly. Email received. CSV accurate.,High
+Report Testing,Egnyte to Amazon S3,Multiple Projects 5 - Verify Report,"1. Run backup for 5 projects Egnyte to Amazon S3
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 5 Egnyte projects in report. CSV accurate.,High
+Report Testing,Egnyte to File System,Multiple Projects 10 - Verify Report,"1. Run backup for 10 projects Egnyte to File System
+2. Verify download
+3. Verify report email
+4. Verify CSV details",All 10 Egnyte projects in report. CSV accurate.,High
+Report Testing,Egnyte to S3 Compatible,Deep Folder Hierarchy - Verify Report,"1. Run backup with deep hierarchy Egnyte to S3 Compatible
+2. Verify download
+3. Verify report email
+4. Verify CSV details",Deep folder hierarchy reflected correctly in report.,High
+Report Testing,Egnyte to Various Targets,Huge Files - Verify Report,"1. Run backup of huge files from Egnyte
+2. Verify download and report email
+3. Verify large report download",Huge files reflected in report. Large report downloads correctly.,High
+Report Testing,Egnyte to Various Targets,Huge Folders and Files - Verify Report,"1. Run backup of huge folders from Egnyte
+2. Verify download and report email
+3. Verify CSV details",All folders and files in report. Metadata accurate.,High
+Report Testing,Egnyte to Various Targets,Large Size Files - Verify Report,"1. Run backup of large files from Egnyte
+2. Verify download and report email
+3. Verify file sizes in CSV",Large file sizes shown correctly in report.,High
+Report Testing,Egnyte to Various Targets,0 KB Files - Verify Report,"1. Run backup of 0 KB files from Egnyte
+2. Verify download and report email
+3. Verify 0 KB in CSV",0 KB files handled correctly in report.,Medium
+Report Testing,Egnyte to Various Targets,Zip Files - Verify Report,"1. Run backup of zip files from Egnyte
+2. Verify download and report email
+3. Verify zip files in CSV",Zip files shown correctly in report.,Medium
+Report Testing,Egnyte to Various Targets,Folders Characters Too Long - Verify Report,"1. Run backup with long folder names from Egnyte
+2. Verify report email
+3. Check error handling in CSV",Long folder names handled. Error shown if limit exceeded.,Medium
+Report Testing,Egnyte to Various Targets,Files Characters Too Long - Verify Report,"1. Run backup with long file names from Egnyte
+2. Verify report email
+3. Check error handling in CSV",Long file names handled. Error shown if limit exceeded.,Medium
+Report Testing,Egnyte to Various Targets,Auto Backup - Verify Report,"1. Configure Auto Backup from Egnyte
+2. Verify report email after scheduled run
+3. Verify CSV details",Auto backup report generated. Email received on schedule.,High
+Report Testing,Egnyte to Various Targets,Nested Folders - Verify Report,"1. Run backup with nested folders from Egnyte
+2. Verify download and report email
+3. Verify nested structure in CSV",Nested folder structure reflected correctly.,Medium
+Report Testing,Egnyte to Various Targets,File Type Variations - Verify Report,"1. Run backup of mixed file types from Egnyte
+2. Verify download and report email
+3. Verify all types in CSV",All file types shown correctly in report.,Medium
+Report Testing,Egnyte to Various Targets,Files With Different Versions - Verify Report,"1. Run backup of versioned files from Egnyte
+2. Verify download and report email
+3. Verify version numbers in CSV",All versions shown. Version numbers correct.,High
+Report Testing,Report CSV Details,Verify ItemType Field,"1. Download report CSV
+2. Check ItemType column",ItemType shows correct value Folder and files.,High
+Report Testing,Report CSV Details,Verify SourceId Field,"1. Download report CSV
+2. Check SourceId column matches BIM360 URN",SourceId matches the correct BIM360 URN format.,High
+Report Testing,Report CSV Details,Verify SourceName and SourcePath,"1. Download report CSV
+2. Check SourceName and SourcePath columns",SourceName and SourcePath match the actual folder and file names.,High
+Report Testing,Report CSV Details,Verify IsDeleted Field,"1. Download report CSV
+2. Check IsDeleted column",IsDeleted shows FALSE for successful items.,Medium
+Report Testing,Report CSV Details,Verify Status Field,"1. Download report CSV
+2. Check Status column",Status shows Success for completed and Failed for errored items.,High
+Report Testing,Report CSV Details,Verify ActionId and Size,"1. Download report CSV
+2. Check ActionId and Size columns",ActionId matches execution ID. Size shows correct file size in bytes.,High
+Report Testing,Report CSV Details,Verify DateTime Fields,"1. Download report CSV
+2. Check UploadCreatedDateTime ItemCreatedDateTime ItemModifiedDateTime",DateTime fields show correct timestamps.,High
+Report Testing,Report CSV Details,Verify CreatedBy and ModifiedBy,"1. Download report CSV
+2. Check ItemCreatedBy and ItemModifiedBy columns",CreatedBy and ModifiedBy show correct user IDs.,Medium
+Report Testing,Report CSV Details,Verify VersionNumber Field,"1. Download report CSV
+2. Check VersionNumber column",VersionNumber shows all version numbers correctly e.g. 1 2 3 6.,High
+Report Testing,Report CSV Details,Verify DateTimeZone Field,"1. Download report CSV
+2. Check DateTimeZone column",DateTimeZone shows UTC correctly.,Low
+Report Testing,Report URL Verification,Verify Report URL Expires in 72 Hours,"1. Complete a backup
+2. Get report URL from email
+3. Try accessing URL after 72 hours",Report URL is inaccessible after 72 hours.,High
+Report Testing,Report URL Verification,Verify Small Size Report Download,"1. Run backup with small number of files
+2. Download the report
+3. Verify content",Small report downloads quickly and contains correct data.,Medium
+Report Testing,Report URL Verification,Verify Large Size Report Download,"1. Run backup with large number of files
+2. Download the report
+3. Verify download completes",Large report downloads successfully without timeout.,High
+Report Testing,Admin Report,Download Sync Report from Administrator,"1. Login as Administrator
+2. Go to Admin report section
+3. Click Download Sync Report
+4. Verify email received
+5. Compare with client-side report",Report email received. Admin report has all metadata plus extra admin-side fields.,High

@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using CloudsferQA.Data;
 using CloudsferQA.Models;
 using CloudsferQA.Models.ViewModels;
@@ -220,6 +221,7 @@ public class AdminController : Controller
             CreatedAt         = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
+        await LogAsync("AddUser", $"User {email} added to directory with role {role}", email: email, category: "User");
 
         TempData["Success"] = $"{email} added to the directory as {role}. They can now register.";
         return RedirectToAction("Index");
@@ -283,6 +285,7 @@ public class AdminController : Controller
         var cases = await _db.TestCases.Where(t => t.Module == moduleName && !t.IsDeleted).ToListAsync();
         cases.ForEach(t => { t.IsDeleted = true; t.DeletedAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
+        await LogAsync("DeleteModule", $"Module \"{moduleName}\" moved to Bin ({cases.Count} test cases)", category: "Module");
         TempData["Success"] = $"Module \"{moduleName}\" moved to Bin.";
         return RedirectToAction("TestCases");
     }
@@ -364,6 +367,7 @@ public class AdminController : Controller
         }
 
         await _db.SaveChangesAsync();
+        await LogAsync("AddTestCase", $"Test case {tc.Id} added to [{tc.Module}] > [{tc.Submodule}]: {tc.Scenario}", category: "TestCase");
         TempData["Success"] = $"Test case {tc.Id} added.";
         return RedirectToAction("TestCases");
     }
@@ -391,6 +395,7 @@ public class AdminController : Controller
 
         tc.Module         = updated.Module;
         tc.Submodule      = updated.Submodule;
+        tc.Group          = updated.Group          ?? string.Empty;
         tc.Scenario       = updated.Scenario;
         tc.Steps          = updated.Steps          ?? string.Empty;
         tc.ExpectedResult = updated.ExpectedResult ?? string.Empty;
@@ -426,6 +431,7 @@ public class AdminController : Controller
         var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.IsDeleted).ToListAsync();
         cases.ForEach(t => { t.IsDeleted = false; t.DeletedAt = null; });
         await _db.SaveChangesAsync();
+        await LogAsync("RestoreModule", $"Module \"{moduleName}\" restored from Bin ({cases.Count} test cases)", category: "Module");
         TempData["Success"] = $"Module \"{moduleName}\" restored.";
         return RedirectToAction("TestCases");
     }
@@ -450,8 +456,250 @@ public class AdminController : Controller
         var cases = await _db.TestCases.Where(t => t.IsDeleted).ToListAsync();
         _db.TestCases.RemoveRange(cases);
         await _db.SaveChangesAsync();
+        await LogAsync("EmptyBin", $"Bin emptied permanently ({cases.Count} test cases deleted)", category: "Module");
         TempData["Success"] = "Bin emptied permanently.";
         return RedirectToAction("TestCases");
+    }
+
+    // ── IMPORT ───────────────────────────────────────────────────────────────
+
+    [HttpGet]
+    public IActionResult DownloadImportTemplate()
+    {
+        var csv = "Module,Submodule,Scenario,Steps,ExpectedResult,Priority\r\n" +
+                  "Registration & Activation,Account Registration,Verify user can register with valid email,\"1. Go to register page\n2. Fill form\n3. Click Submit\",User receives a verification email,High\r\n" +
+                  "Registration & Activation,Email Verification,Verify clicking verification link activates account,,Account is activated and user can login,Medium";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        return File(bytes, "text/csv", "CloudsferQA_Import_Template.csv");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ImportTestCases(IFormFile file)
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        if (file == null || file.Length == 0)
+        {
+            TempData["Error"] = "Please select a file to import.";
+            return RedirectToAction("TestCases");
+        }
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext != ".csv" && ext != ".xlsx")
+        {
+            TempData["Error"] = "Only CSV (.csv) and Excel (.xlsx) files are supported.";
+            return RedirectToAction("TestCases");
+        }
+
+        var rows = new List<TestCase>();
+
+        try
+        {
+            if (ext == ".csv")
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                var headerLine = await reader.ReadLineAsync();
+                if (headerLine == null) { TempData["Error"] = "File is empty."; return RedirectToAction("TestCases"); }
+
+                var headers = headerLine.Split(',').Select(h => h.Trim().Trim('"').ToLowerInvariant()).ToList();
+                int modCol = headers.IndexOf("module");
+                int subCol = headers.IndexOf("submodule");
+                int grpCol = headers.IndexOf("group");
+                int scnCol = headers.IndexOf("scenario");
+                int stpCol = headers.IndexOf("steps");
+                int expCol = headers.IndexOf("expectedresult");
+                int priCol = headers.IndexOf("priority");
+
+                if (modCol < 0 || subCol < 0 || scnCol < 0)
+                {
+                    TempData["Error"] = "File must have columns: Module, Submodule, Scenario (Steps, ExpectedResult, Priority are optional).";
+                    return RedirectToAction("TestCases");
+                }
+
+                string? line;
+                while ((line = await reader.ReadLineAsync()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var cols = SplitCsvLine(line);
+                    var tc = new TestCase
+                    {
+                        Module        = GetCol(cols, modCol),
+                        Submodule     = GetCol(cols, subCol),
+                        Group         = GetCol(cols, grpCol),
+                        Scenario      = GetCol(cols, scnCol),
+                        Steps         = GetCol(cols, stpCol),
+                        ExpectedResult= GetCol(cols, expCol),
+                        Priority      = GetCol(cols, priCol) is { Length: > 0 } p ? p : "Medium"
+                    };
+                    if (!string.IsNullOrWhiteSpace(tc.Module) && !string.IsNullOrWhiteSpace(tc.Scenario))
+                        rows.Add(tc);
+                }
+            }
+            else // .xlsx
+            {
+                using var stream = file.OpenReadStream();
+                using var wb = new XLWorkbook(stream);
+                var ws = wb.Worksheet(1);
+                var lastCol = ws.Row(1).LastCellUsed()?.Address.ColumnNumber ?? 10;
+
+                var headers = Enumerable.Range(1, lastCol)
+                    .Select(c => ws.Cell(1, c).GetString().Trim().ToLowerInvariant())
+                    .ToList();
+
+                int modCol = headers.IndexOf("module") + 1;
+                int subCol = headers.IndexOf("submodule") + 1;
+                int grpCol = headers.IndexOf("group") + 1;
+                int scnCol = headers.IndexOf("scenario") + 1;
+                int stpCol = headers.IndexOf("steps") + 1;
+                int expCol = headers.IndexOf("expectedresult") + 1;
+                int priCol = headers.IndexOf("priority") + 1;
+
+                if (modCol == 0 || subCol == 0 || scnCol == 0)
+                {
+                    TempData["Error"] = "Excel must have columns: Module, Submodule, Scenario (Steps, ExpectedResult, Priority are optional).";
+                    return RedirectToAction("TestCases");
+                }
+
+                int lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+                for (int r = 2; r <= lastRow; r++)
+                {
+                    var module   = ws.Cell(r, modCol).GetString().Trim();
+                    var scenario = ws.Cell(r, scnCol).GetString().Trim();
+                    if (string.IsNullOrWhiteSpace(module) && string.IsNullOrWhiteSpace(scenario)) continue;
+
+                    var priVal = priCol > 0 ? ws.Cell(r, priCol).GetString().Trim() : "";
+                    rows.Add(new TestCase
+                    {
+                        Module        = module,
+                        Submodule     = ws.Cell(r, subCol).GetString().Trim(),
+                        Group         = grpCol > 0 ? ws.Cell(r, grpCol).GetString().Trim() : "",
+                        Scenario      = scenario,
+                        Steps         = stpCol > 0 ? ws.Cell(r, stpCol).GetString().Trim() : "",
+                        ExpectedResult= expCol > 0 ? ws.Cell(r, expCol).GetString().Trim() : "",
+                        Priority      = priVal.Length > 0 ? priVal : "Medium"
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Failed to parse file: {ex.Message}";
+            return RedirectToAction("TestCases");
+        }
+
+        if (rows.Count == 0)
+        {
+            TempData["Error"] = "No valid rows found. Make sure the file has Module, Submodule, and Scenario columns with data.";
+            return RedirectToAction("TestCases");
+        }
+
+        int added = 0;
+        foreach (var tc in rows)
+        {
+            // Same ID generation as AddTestCase
+            var prefix = string.Concat(tc.Module.Split(' ', '&', '(', ')')
+                .Where(w => w.Length > 0)
+                .Take(2)
+                .Select(w => w[0]))
+                .ToUpper();
+            if (prefix.Length < 2)
+                prefix = tc.Module.Replace(" ", "").ToUpper()[..Math.Min(3, tc.Module.Replace(" ", "").Length)];
+
+            var existing = await _db.TestCases.Where(t => t.Id.StartsWith(prefix)).Select(t => t.Id).ToListAsync();
+            int next = existing
+                .Select(id => { int.TryParse(id.Replace(prefix + "-", ""), out var n); return n; })
+                .DefaultIfEmpty(0).Max() + 1;
+
+            tc.Id             = $"{prefix}-{next:D3}";
+            tc.Steps          ??= string.Empty;
+            tc.ExpectedResult ??= string.Empty;
+
+            _db.TestCases.Add(tc);
+
+            bool moduleExists = await _db.ModuleOrders.AnyAsync(m => m.ModuleName == tc.Module);
+            if (!moduleExists)
+            {
+                int maxOrder = await _db.ModuleOrders.AnyAsync()
+                    ? await _db.ModuleOrders.MaxAsync(m => m.SortOrder)
+                    : -1;
+                _db.ModuleOrders.Add(new CloudsferQA.Models.ModuleOrder { ModuleName = tc.Module, SortOrder = maxOrder + 1 });
+            }
+
+            await _db.SaveChangesAsync();
+            added++;
+        }
+
+        var importedModules = rows.Select(r => r.Module).Distinct();
+        await LogAsync("Import", $"Imported {added} test case(s) from \"{file.FileName}\" into modules: {string.Join(", ", importedModules)}", category: "TestCase");
+        TempData["Success"] = $"{added} test case(s) imported successfully from \"{file.FileName}\".";
+        return RedirectToAction("TestCases");
+    }
+
+    private static string GetCol(List<string> cols, int idx) =>
+        idx >= 0 && idx < cols.Count ? cols[idx].Trim().Trim('"') : "";
+
+    private static List<string> SplitCsvLine(string line)
+    {
+        var result = new List<string>();
+        bool inQuote = false;
+        var current = new System.Text.StringBuilder();
+        foreach (char c in line)
+        {
+            if (c == '"') { inQuote = !inQuote; }
+            else if (c == ',' && !inQuote) { result.Add(current.ToString()); current.Clear(); }
+            else { current.Append(c); }
+        }
+        result.Add(current.ToString());
+        return result;
+    }
+
+    // ── ACTIVITY LOG ─────────────────────────────────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> ActivityLog(string? category, int page = 1)
+    {
+        var admin = await RequireAdminAsync();
+        if (admin == null) return RedirectToAction("Login", "Auth");
+        ViewBag.CurrentUser = admin;
+
+        var query = _db.ActivityLogs.AsQueryable();
+        if (!string.IsNullOrEmpty(category))
+            query = query.Where(l => l.Category == category);
+
+        int total = await query.CountAsync();
+        int pageSize = 50;
+        var logs = await query
+            .OrderByDescending(l => l.PerformedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        ViewBag.Category = category;
+        ViewBag.Page = page;
+        ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
+        ViewBag.Total = total;
+        return View(logs);
+    }
+
+    private async Task LogAsync(string action, string details, string? email = null, string category = "")
+    {
+        // Get current user email from cookie
+        string performedBy = email ?? "System";
+        if (email == null && Request.Cookies.TryGetValue("QAAuthUserId", out var idStr) && int.TryParse(idStr, out var id))
+        {
+            var user = await _db.Users.FindAsync(id);
+            if (user != null) performedBy = user.Email;
+        }
+
+        _db.ActivityLogs.Add(new CloudsferQA.Models.ActivityLog
+        {
+            Action      = action,
+            Details     = details,
+            PerformedBy = performedBy,
+            PerformedAt = DateTime.UtcNow,
+            Category    = category
+        });
+        await _db.SaveChangesAsync();
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────────────

@@ -1,0 +1,90 @@
+@model List<CloudsferQA.Models.ActivityLog>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Activity Log";
+    string? currentCategory = ViewBag.Category as string;
+    int page = (int)ViewBag.Page;
+    int totalPages = (int)ViewBag.TotalPages;
+    int total = (int)ViewBag.Total;
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="font-weight:700;color:#1565C0;margin:0">Activity Log</h2>
+            <div style="font-size:13px;color:#78909C;margin-top:2px">@total total entries — all actions recorded</div>
+        </div>
+        <a href="/Admin" style="font-size:13px;color:#546E7A;text-decoration:none">← Back to Admin</a>
+    </div>
+
+    <!-- Category filter tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <a href="/Admin/ActivityLog" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;@(currentCategory==null?"background:#1565C0;color:#fff":"background:#ECEFF1;color:#546E7A")">All</a>
+        <a href="/Admin/ActivityLog?category=TestCase" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;@(currentCategory=="TestCase"?"background:#1565C0;color:#fff":"background:#ECEFF1;color:#546E7A")">Test Cases</a>
+        <a href="/Admin/ActivityLog?category=User" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;@(currentCategory=="User"?"background:#1565C0;color:#fff":"background:#ECEFF1;color:#546E7A")">Users</a>
+        <a href="/Admin/ActivityLog?category=Module" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;@(currentCategory=="Module"?"background:#1565C0;color:#fff":"background:#ECEFF1;color:#546E7A")">Modules</a>
+    </div>
+
+    <div style="background:#fff;border:1px solid #E0E0E0;border-radius:10px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+                <tr style="background:#F5F7FA;border-bottom:2px solid #E0E0E0">
+                    <th style="padding:12px 16px;text-align:left;font-weight:600;color:#546E7A;font-size:11px;text-transform:uppercase">Time</th>
+                    <th style="padding:12px 16px;text-align:left;font-weight:600;color:#546E7A;font-size:11px;text-transform:uppercase">Action</th>
+                    <th style="padding:12px 16px;text-align:left;font-weight:600;color:#546E7A;font-size:11px;text-transform:uppercase">Details</th>
+                    <th style="padding:12px 16px;text-align:left;font-weight:600;color:#546E7A;font-size:11px;text-transform:uppercase">Performed By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" style="padding:40px;text-align:center;color:#90A4AE;font-size:13px">No activity logged yet.</td>
+                    </tr>
+                }
+                @foreach (var log in Model)
+                {
+                    var (bg, badge, icon) = log.Action switch
+                    {
+                        "Import"        => ("#E8F5E9", "#2E7D32", "↑"),
+                        "AddTestCase"   => ("#E3F2FD", "#1565C0", "+"),
+                        "AddUser"       => ("#F3E5F5", "#6A1B9A", "👤"),
+                        "DeleteModule"  => ("#FFEBEE", "#C62828", "🗑"),
+                        "RestoreModule" => ("#FFF8E1", "#F57F17", "↩"),
+                        "EmptyBin"      => ("#FFEBEE", "#B71C1C", "✕"),
+                        _               => ("#F5F5F5", "#546E7A", "•")
+                    };
+                    <tr style="border-bottom:1px solid #F5F5F5;background:@bg">
+                        <td style="padding:10px 16px;color:#78909C;white-space:nowrap;font-size:12px">
+                            @log.PerformedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                        </td>
+                        <td style="padding:10px 16px;white-space:nowrap">
+                            <span style="background:@badge;color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700">
+                                @icon @log.Action
+                            </span>
+                        </td>
+                        <td style="padding:10px 16px;color:#37474F;line-height:1.5">@log.Details</td>
+                        <td style="padding:10px 16px;color:#546E7A;font-size:12px;white-space:nowrap">@log.PerformedBy</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div style="display:flex;justify-content:center;gap:8px;margin-top:20px">
+            @if (page > 1)
+            {
+                <a href="/Admin/ActivityLog?category=@currentCategory&page=@(page-1)" style="padding:6px 14px;background:#ECEFF1;border-radius:6px;font-size:13px;text-decoration:none;color:#546E7A">← Prev</a>
+            }
+            <span style="padding:6px 14px;font-size:13px;color:#78909C">Page @(page) of @(totalPages)</span>
+            @if (page < totalPages)
+            {
+                <a href="/Admin/ActivityLog?category=@currentCategory&page=@(page+1)" style="padding:6px 14px;background:#ECEFF1;border-radius:6px;font-size:13px;text-decoration:none;color:#546E7A">Next →</a>
+            }
+        </div>
+    }
+
+</div>

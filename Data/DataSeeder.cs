@@ -11,6 +11,7 @@ public static class DataSeeder
     {
         SeedTestCases(db, webRootPath);
         UpsertNewTestCases(db);
+        UpsertReportTestCases(db);
         SeedAdminUser(db, config);
         SeedDemoSession(db);
     }
@@ -412,6 +413,609 @@ public static class DataSeeder
         db.TestCases.AddRange(toAdd);
         db.SaveChanges();
         Console.WriteLine($"[DataSeeder] Added {toAdd.Count} new test cases from v3.39.0.14/v3.39.0.15.");
+    }
+
+    // ── Report module test cases ────────────────────────────────────────────
+    private static void UpsertReportTestCases(AppDbContext db)
+    {
+        var cases = new List<TestCase>
+        {
+            // ════════════════════════════════════════════════════════════════
+            // ADMIN REPORT  ›  Migration Backup Report
+            // ════════════════════════════════════════════════════════════════
+            new() { Id="RAR-001", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for BIM 360 → Amazon S3 after successful backup",
+                Steps="1. Complete a BIM 360 → Amazon S3 backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=BIM 360, target=Amazon S3, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-002", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for BIM 360 → File System after successful backup",
+                Steps="1. Complete a BIM 360 → File System backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=BIM 360, target=File System, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-003", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for BIM 360 → S3 Compatible after successful backup",
+                Steps="1. Complete a BIM 360 → S3 Compatible backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=BIM 360, target=S3 Compatible, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-004", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for BIM 360 → Azure Blob Storage after successful backup",
+                Steps="1. Complete a BIM 360 → Azure Blob Storage backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=BIM 360, target=Azure Blob Storage, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-005", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for Egnyte → Amazon S3 after successful backup",
+                Steps="1. Complete an Egnyte → Amazon S3 backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=Egnyte, target=Amazon S3, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-006", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for Egnyte → File System after successful backup",
+                Steps="1. Complete an Egnyte → File System backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=Egnyte, target=File System, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-007", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for Egnyte → S3 Compatible after successful backup",
+                Steps="1. Complete an Egnyte → S3 Compatible backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=Egnyte, target=S3 Compatible, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-008", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Backup report generated for Egnyte → Azure Blob Storage after successful backup",
+                Steps="1. Complete an Egnyte → Azure Blob Storage backup\n2. Navigate to Admin > Reports > Backup Reports",
+                ExpectedResult="Report entry visible with source=Egnyte, target=Azure Blob Storage, status=Success",
+                Priority="High" },
+
+            new() { Id="RAR-009", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows correct total file count for completed backup",
+                Steps="1. Complete a backup with a known file count\n2. Open admin backup report for that job",
+                ExpectedResult="Total files count in report matches the actual number of files backed up",
+                Priority="High" },
+
+            new() { Id="RAR-010", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows correct backup size",
+                Steps="1. Complete a backup\n2. Check size shown in admin report vs actual target size",
+                ExpectedResult="Backup size in report matches actual data transferred to target",
+                Priority="High" },
+
+            new() { Id="RAR-011", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows accurate backup start and end timestamps",
+                Steps="1. Note the start time before running a backup\n2. Complete backup\n3. Open report",
+                ExpectedResult="Start and end times in report match the actual execution window",
+                Priority="High" },
+
+            new() { Id="RAR-012", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report status shows 'Success' for fully completed backup",
+                Steps="1. Run a backup that completes without errors\n2. Open admin report",
+                ExpectedResult="Status column shows 'Success' for the backup entry",
+                Priority="High" },
+
+            new() { Id="RAR-013", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report status shows 'Completed with Errors' when some files fail",
+                Steps="1. Run a backup where some files are inaccessible\n2. Open admin report",
+                ExpectedResult="Status shows 'Completed with Errors'; failed file count is non-zero",
+                Priority="High" },
+
+            new() { Id="RAR-014", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report status shows 'Failed' for a backup that did not complete",
+                Steps="1. Trigger or simulate a fully failed backup\n2. Open admin report",
+                ExpectedResult="Status shows 'Failed'; error reason is visible",
+                Priority="High" },
+
+            new() { Id="RAR-015", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report can be filtered by date range",
+                Steps="1. Select a specific From–To date range in the filter\n2. Apply",
+                ExpectedResult="Only backup reports within the selected date range are displayed",
+                Priority="High" },
+
+            new() { Id="RAR-016", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report can be filtered by source (BIM 360 / Egnyte)",
+                Steps="1. Select source filter = BIM 360\n2. Apply\n3. Repeat for Egnyte",
+                ExpectedResult="Only reports matching the selected source are shown",
+                Priority="High" },
+
+            new() { Id="RAR-017", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report can be filtered by target (Amazon S3 / File System / S3 Compatible / Azure Blob Storage)",
+                Steps="1. Select each target in the filter dropdown one at a time\n2. Apply",
+                ExpectedResult="Each filter shows only reports for the selected target storage type",
+                Priority="High" },
+
+            new() { Id="RAR-018", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report can be filtered by status (Success / Completed with Errors / Failed)",
+                Steps="1. Apply status filter = Failed\n2. Verify results\n3. Repeat for other statuses",
+                ExpectedResult="Only reports matching the selected status are shown",
+                Priority="Medium" },
+
+            new() { Id="RAR-019", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report pagination works correctly when many backup records exist",
+                Steps="1. Ensure 50+ backup records exist\n2. Open admin backup report\n3. Navigate pages",
+                ExpectedResult="Pagination controls functional; records distributed correctly across pages",
+                Priority="Medium" },
+
+            new() { Id="RAR-020", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Failed backup entries show error details in report",
+                Steps="1. Open a failed backup report entry\n2. Click on the entry or expand details",
+                ExpectedResult="Error message or reason is visible for the failed backup",
+                Priority="High" },
+
+            new() { Id="RAR-021", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows skipped/excluded files count separately",
+                Steps="1. Run a backup where some files are skipped\n2. Check report details",
+                ExpectedResult="Skipped files count shown distinctly from failed count",
+                Priority="Medium" },
+
+            new() { Id="RAR-022", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Admin can view backup reports for all accounts across all users",
+                Steps="1. Log in as Admin\n2. Open backup reports\n3. Check reports from multiple different accounts",
+                ExpectedResult="Reports for all user accounts are visible to the admin",
+                Priority="High" },
+
+            new() { Id="RAR-023", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report updates and reflects new backup after it completes",
+                Steps="1. Note current report list\n2. Run a new backup\n3. Refresh report page",
+                ExpectedResult="New backup entry appears in the report after completion",
+                Priority="High" },
+
+            new() { Id="RAR-024", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report list is sorted by date descending by default",
+                Steps="1. Open admin backup report with multiple entries",
+                ExpectedResult="Most recent backup appears first; entries in descending date order",
+                Priority="Medium" },
+
+            new() { Id="RAR-025", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Admin can search or filter reports by account name",
+                Steps="1. Enter an account name in the search/filter field\n2. Apply",
+                ExpectedResult="Only reports belonging to the searched account are shown",
+                Priority="Medium" },
+
+            new() { Id="RAR-026", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows correct number of backed-up files for BIM 360 → Amazon S3 incremental backup",
+                Steps="1. Run an incremental BIM 360 → Amazon S3 backup after a full backup\n2. Open report",
+                ExpectedResult="Report shows only the delta (new/changed files), not the full count again",
+                Priority="High" },
+
+            new() { Id="RAR-027", Module="Report", Submodule="Admin Report", Group="Migration Backup Report",
+                Scenario="Report shows correct number of backed-up files for Egnyte → Azure Blob Storage incremental backup",
+                Steps="1. Run an incremental Egnyte → Azure Blob Storage backup\n2. Open report",
+                ExpectedResult="Delta file count is shown; matches actual changed files",
+                Priority="High" },
+
+            // ════════════════════════════════════════════════════════════════
+            // ADMIN REPORT  ›  Downloaded Report Details
+            // ════════════════════════════════════════════════════════════════
+            new() { Id="RAR-028", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Download Report button is accessible on the admin backup report page",
+                Steps="1. Navigate to Admin > Reports > Backup Reports\n2. Look for Download/Export button",
+                ExpectedResult="Download Report button is visible and enabled",
+                Priority="High" },
+
+            new() { Id="RAR-029", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report file is in CSV format",
+                Steps="1. Click Download Report on admin backup reports page\n2. Check file extension",
+                ExpectedResult="File downloads with .csv extension and is valid CSV",
+                Priority="High" },
+
+            new() { Id="RAR-030", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report contains all expected column headers",
+                Steps="1. Download admin backup report\n2. Open in Excel/text editor\n3. Check headers",
+                ExpectedResult="Headers include: Account, Source, Target, Status, Total Files, Success, Failed, Skipped, Size, Start Time, End Time",
+                Priority="High" },
+
+            new() { Id="RAR-031", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report data matches the on-screen table exactly",
+                Steps="1. Note values shown on screen\n2. Download report\n3. Compare each row",
+                ExpectedResult="Every row and value in the downloaded file matches what was displayed on screen",
+                Priority="High" },
+
+            new() { Id="RAR-032", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report includes all filtered results, not just the current page",
+                Steps="1. Filter report to 100+ results (multi-page)\n2. Download\n3. Count rows in file",
+                ExpectedResult="Downloaded file contains all filtered rows, not only the visible page",
+                Priority="High" },
+
+            new() { Id="RAR-033", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for BIM 360 → Amazon S3 contains correct source and target values",
+                Steps="1. Filter by BIM 360 source + Amazon S3 target\n2. Download\n3. Verify source/target columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=Amazon S3",
+                Priority="High" },
+
+            new() { Id="RAR-034", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for BIM 360 → File System contains correct source and target values",
+                Steps="1. Filter by BIM 360 + File System\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=File System",
+                Priority="High" },
+
+            new() { Id="RAR-035", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for BIM 360 → S3 Compatible contains correct source and target values",
+                Steps="1. Filter by BIM 360 + S3 Compatible\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=S3 Compatible",
+                Priority="High" },
+
+            new() { Id="RAR-036", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for BIM 360 → Azure Blob Storage contains correct source and target values",
+                Steps="1. Filter by BIM 360 + Azure Blob Storage\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=Azure Blob Storage",
+                Priority="High" },
+
+            new() { Id="RAR-037", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for Egnyte → Amazon S3 contains correct source and target values",
+                Steps="1. Filter by Egnyte + Amazon S3\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=Amazon S3",
+                Priority="High" },
+
+            new() { Id="RAR-038", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for Egnyte → File System contains correct source and target values",
+                Steps="1. Filter by Egnyte + File System\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=File System",
+                Priority="High" },
+
+            new() { Id="RAR-039", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for Egnyte → S3 Compatible contains correct source and target values",
+                Steps="1. Filter by Egnyte + S3 Compatible\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=S3 Compatible",
+                Priority="High" },
+
+            new() { Id="RAR-040", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report for Egnyte → Azure Blob Storage contains correct source and target values",
+                Steps="1. Filter by Egnyte + Azure Blob Storage\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=Azure Blob Storage",
+                Priority="High" },
+
+            new() { Id="RAR-041", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report includes error details for failed backup jobs",
+                Steps="1. Filter to show failed backups\n2. Download report\n3. Check error column",
+                ExpectedResult="Error or failure reason is present in the downloaded file for each failed entry",
+                Priority="High" },
+
+            new() { Id="RAR-042", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report file name follows expected naming convention",
+                Steps="1. Download admin backup report\n2. Observe file name",
+                ExpectedResult="File name includes report type and date (e.g. AdminBackupReport_2025-01-15.csv)",
+                Priority="Medium" },
+
+            new() { Id="RAR-043", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report opens without errors or encoding issues in Excel",
+                Steps="1. Download report\n2. Open in Microsoft Excel",
+                ExpectedResult="File opens cleanly; no garbled characters; columns auto-detected correctly",
+                Priority="High" },
+
+            new() { Id="RAR-044", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloading filtered report exports only the filtered data",
+                Steps="1. Apply date range + status filter\n2. Download\n3. Verify rows",
+                ExpectedResult="Downloaded file contains ONLY rows matching active filters; no extra records",
+                Priority="High" },
+
+            new() { Id="RAR-045", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Empty filtered report can be downloaded without error",
+                Steps="1. Apply a filter that returns zero results\n2. Click Download",
+                ExpectedResult="CSV downloads successfully with headers only; no server error or crash",
+                Priority="Medium" },
+
+            new() { Id="RAR-046", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report dates are in a consistent, unambiguous format",
+                Steps="1. Download a backup report\n2. Check all date/time columns",
+                ExpectedResult="All dates use ISO or dd/MM/yyyy HH:mm format consistently across all rows",
+                Priority="Medium" },
+
+            new() { Id="RAR-047", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Large report (1000+ rows) downloads completely without timeout",
+                Steps="1. Ensure 1000+ backup records exist\n2. Download without applying filters",
+                ExpectedResult="File downloads fully; row count in file matches total records",
+                Priority="High" },
+
+            new() { Id="RAR-048", Module="Report", Submodule="Admin Report", Group="Downloaded Report Details",
+                Scenario="Downloaded report Size column shows human-readable values (KB/MB/GB)",
+                Steps="1. Download backup report\n2. Check the Size column in the file",
+                ExpectedResult="Size values are in human-readable units (e.g. 1.2 GB, 540 MB), not raw bytes",
+                Priority="Low" },
+
+            // ════════════════════════════════════════════════════════════════
+            // CLIENT REPORT  ›  Migration Backup Report
+            // ════════════════════════════════════════════════════════════════
+            new() { Id="RCR-001", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for BIM 360 → Amazon S3",
+                Steps="1. Log in as a client account that has BIM 360 → Amazon S3 backups\n2. Navigate to Reports > Backup Reports",
+                ExpectedResult="Backup report entries with source=BIM 360, target=Amazon S3 are visible",
+                Priority="High" },
+
+            new() { Id="RCR-002", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for BIM 360 → File System",
+                Steps="1. Log in as client with BIM 360 → File System backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=BIM 360, target=File System are visible",
+                Priority="High" },
+
+            new() { Id="RCR-003", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for BIM 360 → S3 Compatible",
+                Steps="1. Log in as client with BIM 360 → S3 Compatible backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=BIM 360, target=S3 Compatible are visible",
+                Priority="High" },
+
+            new() { Id="RCR-004", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for BIM 360 → Azure Blob Storage",
+                Steps="1. Log in as client with BIM 360 → Azure Blob Storage backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=BIM 360, target=Azure Blob Storage are visible",
+                Priority="High" },
+
+            new() { Id="RCR-005", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for Egnyte → Amazon S3",
+                Steps="1. Log in as client with Egnyte → Amazon S3 backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=Egnyte, target=Amazon S3 are visible",
+                Priority="High" },
+
+            new() { Id="RCR-006", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for Egnyte → File System",
+                Steps="1. Log in as client with Egnyte → File System backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=Egnyte, target=File System are visible",
+                Priority="High" },
+
+            new() { Id="RCR-007", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for Egnyte → S3 Compatible",
+                Steps="1. Log in as client with Egnyte → S3 Compatible backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=Egnyte, target=S3 Compatible are visible",
+                Priority="High" },
+
+            new() { Id="RCR-008", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can view backup report for Egnyte → Azure Blob Storage",
+                Steps="1. Log in as client with Egnyte → Azure Blob Storage backups\n2. Open Backup Reports",
+                ExpectedResult="Backup report entries with source=Egnyte, target=Azure Blob Storage are visible",
+                Priority="High" },
+
+            new() { Id="RCR-009", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can only see their own account's backup reports",
+                Steps="1. Log in as Client A\n2. Open backup reports\n3. Verify no records from Client B",
+                ExpectedResult="Only Client A's own backups are listed; data isolation enforced",
+                Priority="High" },
+
+            new() { Id="RCR-010", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows correct total file count per backup job",
+                Steps="1. Run a backup with a known file count\n2. Open client backup report",
+                ExpectedResult="Total files count matches actual files backed up",
+                Priority="High" },
+
+            new() { Id="RCR-011", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows correct backup size",
+                Steps="1. Complete a backup\n2. Check size column in client report",
+                ExpectedResult="Size value matches actual data transferred to target storage",
+                Priority="High" },
+
+            new() { Id="RCR-012", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows accurate backup start and end timestamps",
+                Steps="1. Note start time before running backup\n2. Complete backup\n3. Check client report",
+                ExpectedResult="Timestamps in report match actual execution window",
+                Priority="High" },
+
+            new() { Id="RCR-013", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report status shows 'Success' for fully completed backup",
+                Steps="1. Run a backup that completes without errors\n2. Check client report",
+                ExpectedResult="Status column shows 'Success'",
+                Priority="High" },
+
+            new() { Id="RCR-014", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report status shows 'Completed with Errors' when some files fail",
+                Steps="1. Run a backup where some files are inaccessible\n2. Check client report",
+                ExpectedResult="Status shows 'Completed with Errors'; failed file count is non-zero",
+                Priority="High" },
+
+            new() { Id="RCR-015", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report status shows 'Failed' for a fully failed backup",
+                Steps="1. Trigger or simulate a fully failed backup\n2. Open client report",
+                ExpectedResult="Status shows 'Failed'; error reason is visible",
+                Priority="High" },
+
+            new() { Id="RCR-016", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can filter backup report by date range",
+                Steps="1. Select a From–To date range\n2. Apply filter",
+                ExpectedResult="Only backup reports within the selected dates are displayed",
+                Priority="High" },
+
+            new() { Id="RCR-017", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can filter backup report by source (BIM 360 / Egnyte)",
+                Steps="1. Select source filter = BIM 360\n2. Apply\n3. Repeat for Egnyte",
+                ExpectedResult="Only reports matching the selected source are shown",
+                Priority="High" },
+
+            new() { Id="RCR-018", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can filter backup report by target storage type",
+                Steps="1. Select each target filter (Amazon S3, File System, S3 Compatible, Azure Blob Storage)\n2. Apply each",
+                ExpectedResult="Each filter shows only reports for the selected target type",
+                Priority="High" },
+
+            new() { Id="RCR-019", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client can filter backup report by status",
+                Steps="1. Apply status filter = Failed\n2. Verify results\n3. Repeat for other statuses",
+                ExpectedResult="Only records with the selected status are shown",
+                Priority="Medium" },
+
+            new() { Id="RCR-020", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report pagination works correctly",
+                Steps="1. Ensure 50+ backup records\n2. Open client report\n3. Navigate through pages",
+                ExpectedResult="Pagination works; all records accessible across pages",
+                Priority="Medium" },
+
+            new() { Id="RCR-021", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows error details for failed backup",
+                Steps="1. Open a failed backup entry in client report\n2. Expand or click details",
+                ExpectedResult="Error message or reason is displayed for the failed job",
+                Priority="High" },
+
+            new() { Id="RCR-022", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows skipped files count separately from failed count",
+                Steps="1. Run a backup with skipped files\n2. Open client report",
+                ExpectedResult="Skipped count is shown as a distinct column/value from failed count",
+                Priority="Medium" },
+
+            new() { Id="RCR-023", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report does not expose reports from other accounts",
+                Steps="1. Log in as Client A\n2. Attempt to access Client B's report by URL manipulation",
+                ExpectedResult="Access denied; Client A cannot view Client B's report data",
+                Priority="High" },
+
+            new() { Id="RCR-024", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report sorted by date descending by default",
+                Steps="1. Open client backup report with multiple entries",
+                ExpectedResult="Most recent backup entry appears first",
+                Priority="Medium" },
+
+            new() { Id="RCR-025", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report reflects new backup after it completes",
+                Steps="1. Note current report list\n2. Run new backup\n3. Refresh report page",
+                ExpectedResult="New backup entry appears after completion",
+                Priority="High" },
+
+            new() { Id="RCR-026", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows correct delta file count for BIM 360 → Amazon S3 incremental backup",
+                Steps="1. Run a full BIM 360 → Amazon S3 backup\n2. Add new files\n3. Run incremental\n4. Check report",
+                ExpectedResult="Report shows only the incremental (changed/new) file count, not the full total",
+                Priority="High" },
+
+            new() { Id="RCR-027", Module="Report", Submodule="Client Report", Group="Migration Backup Report",
+                Scenario="Client report shows correct delta file count for Egnyte → Azure Blob Storage incremental backup",
+                Steps="1. Run full Egnyte → Azure Blob backup\n2. Add files\n3. Run incremental\n4. Check report",
+                ExpectedResult="Report reflects only changed/new files in the incremental run",
+                Priority="High" },
+
+            // ════════════════════════════════════════════════════════════════
+            // CLIENT REPORT  ›  Downloaded Report Details
+            // ════════════════════════════════════════════════════════════════
+            new() { Id="RCR-028", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Download Report button is accessible on the client backup report page",
+                Steps="1. Log in as client\n2. Navigate to Reports > Backup Reports\n3. Look for Download button",
+                ExpectedResult="Download Report button is visible and enabled",
+                Priority="High" },
+
+            new() { Id="RCR-029", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report file is in CSV format",
+                Steps="1. Click Download Report on client backup reports page\n2. Check file extension",
+                ExpectedResult="File downloads as .csv and is valid CSV content",
+                Priority="High" },
+
+            new() { Id="RCR-030", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report contains all expected column headers",
+                Steps="1. Download client backup report\n2. Open file\n3. Check headers",
+                ExpectedResult="Headers include: Source, Target, Status, Total Files, Success, Failed, Skipped, Size, Start Time, End Time",
+                Priority="High" },
+
+            new() { Id="RCR-031", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report data matches the on-screen table exactly",
+                Steps="1. Note on-screen values\n2. Download report\n3. Compare each row",
+                ExpectedResult="Every row in the file matches the on-screen display",
+                Priority="High" },
+
+            new() { Id="RCR-032", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report includes all filtered results across all pages",
+                Steps="1. Filter to a large result set (multi-page)\n2. Download\n3. Count rows in file",
+                ExpectedResult="File contains all matching records, not just the visible page",
+                Priority="High" },
+
+            new() { Id="RCR-033", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for BIM 360 → Amazon S3 contains correct source/target",
+                Steps="1. Filter by BIM 360 + Amazon S3\n2. Download\n3. Verify Source and Target columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=Amazon S3",
+                Priority="High" },
+
+            new() { Id="RCR-034", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for BIM 360 → File System contains correct source/target",
+                Steps="1. Filter by BIM 360 + File System\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=File System",
+                Priority="High" },
+
+            new() { Id="RCR-035", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for BIM 360 → S3 Compatible contains correct source/target",
+                Steps="1. Filter by BIM 360 + S3 Compatible\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=S3 Compatible",
+                Priority="High" },
+
+            new() { Id="RCR-036", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for BIM 360 → Azure Blob Storage contains correct source/target",
+                Steps="1. Filter by BIM 360 + Azure Blob Storage\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=BIM 360 and Target=Azure Blob Storage",
+                Priority="High" },
+
+            new() { Id="RCR-037", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for Egnyte → Amazon S3 contains correct source/target",
+                Steps="1. Filter by Egnyte + Amazon S3\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=Amazon S3",
+                Priority="High" },
+
+            new() { Id="RCR-038", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for Egnyte → File System contains correct source/target",
+                Steps="1. Filter by Egnyte + File System\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=File System",
+                Priority="High" },
+
+            new() { Id="RCR-039", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for Egnyte → S3 Compatible contains correct source/target",
+                Steps="1. Filter by Egnyte + S3 Compatible\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=S3 Compatible",
+                Priority="High" },
+
+            new() { Id="RCR-040", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report for Egnyte → Azure Blob Storage contains correct source/target",
+                Steps="1. Filter by Egnyte + Azure Blob Storage\n2. Download\n3. Verify columns",
+                ExpectedResult="All rows show Source=Egnyte and Target=Azure Blob Storage",
+                Priority="High" },
+
+            new() { Id="RCR-041", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report includes error details for failed backup jobs",
+                Steps="1. Filter to show failed backups\n2. Download report\n3. Check error column",
+                ExpectedResult="Error/failure reason is present in the file for each failed entry",
+                Priority="High" },
+
+            new() { Id="RCR-042", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report does not contain data from other accounts",
+                Steps="1. Download client report as Client A\n2. Check all rows",
+                ExpectedResult="Zero rows belong to any account other than Client A",
+                Priority="High" },
+
+            new() { Id="RCR-043", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report file name includes account or date identifier",
+                Steps="1. Download client backup report\n2. Observe the file name",
+                ExpectedResult="File name includes date or account reference (e.g. BackupReport_2025-01-15.csv)",
+                Priority="Medium" },
+
+            new() { Id="RCR-044", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report opens without errors or encoding issues in Excel",
+                Steps="1. Download report\n2. Open in Microsoft Excel",
+                ExpectedResult="File opens cleanly; no garbled text; columns detected correctly",
+                Priority="High" },
+
+            new() { Id="RCR-045", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Downloading filtered client report exports only the filtered data",
+                Steps="1. Apply status + date filters\n2. Download\n3. Verify rows in file",
+                ExpectedResult="Downloaded file contains ONLY rows matching active filters",
+                Priority="High" },
+
+            new() { Id="RCR-046", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Empty filtered client report downloads without error",
+                Steps="1. Apply a filter returning zero results\n2. Click Download",
+                ExpectedResult="CSV downloads with headers only; no server error",
+                Priority="Medium" },
+
+            new() { Id="RCR-047", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Client downloaded report dates are in a consistent format",
+                Steps="1. Download client backup report\n2. Inspect all date columns",
+                ExpectedResult="All dates use a consistent format (ISO or dd/MM/yyyy HH:mm) throughout the file",
+                Priority="Medium" },
+
+            new() { Id="RCR-048", Module="Report", Submodule="Client Report", Group="Downloaded Report Details",
+                Scenario="Large client report (500+ rows) downloads completely without timeout",
+                Steps="1. Ensure 500+ backup records exist for the account\n2. Download without filters",
+                ExpectedResult="File downloads fully; row count in file matches total record count",
+                Priority="High" },
+        };
+
+        var existingIds = db.TestCases.Select(t => t.Id).ToHashSet();
+        var toAdd = cases.Where(tc => !existingIds.Contains(tc.Id)).ToList();
+        if (toAdd.Count == 0) return;
+
+        db.TestCases.AddRange(toAdd);
+        db.SaveChanges();
+        Console.WriteLine($"[DataSeeder] Added {toAdd.Count} Report module test cases.");
     }
 
     // ── Admin user ──────────────────────────────────────────────────────────

@@ -12,7 +12,12 @@
         .ThenBy(g => g.Key)
         .ToDictionary(
             g => g.Key,
-            g => g.GroupBy(t => t.Submodule).OrderBy(sg => sg.Key).ToDictionary(sg => sg.Key, sg => sg.OrderBy(t => t.Id).ToList())
+            g => g.GroupBy(t => t.Submodule).OrderBy(sg => sg.Key).ToDictionary(
+                sg => sg.Key,
+                sg => sg.GroupBy(t => t.Group)
+                        .OrderBy(gg => string.IsNullOrEmpty(gg.Key) ? "\xFF" : gg.Key)
+                        .ToDictionary(gg => gg.Key, gg => gg.OrderBy(t => t.Id).ToList())
+            )
         );
 }
 
@@ -40,9 +45,42 @@
         </div>
     }
 
-    <!-- Add new module button -->
-    <div class="mb-3">
+    <!-- Add new module / Import buttons -->
+    <div class="mb-3 d-flex gap-2">
         <button class="btn btn-sm btn-primary" onclick="showAddModule()">+ Add New Module</button>
+        <button class="btn btn-sm btn-success" onclick="document.getElementById('importModal').style.display='flex'">↑ Import from File</button>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;width:100%;max-width:500px;box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden">
+            <!-- Header -->
+            <div style="background:#2E7D32;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:15px;font-weight:700;color:#fff">Import Test Cases</span>
+                <button onclick="document.getElementById('importModal').style.display='none'" style="background:none;border:none;color:#fff;font-size:20px;line-height:1;cursor:pointer">×</button>
+            </div>
+            <!-- Body -->
+            <div style="padding:20px">
+                <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 16px;font-size:12px;color:#2E7D32;margin-bottom:16px;line-height:1.7">
+                    <strong>Supported formats:</strong> CSV (.csv) and Excel (.xlsx)<br>
+                    <strong>Required columns:</strong> Module, Submodule, Scenario<br>
+                    <strong>Optional columns:</strong> Steps, ExpectedResult, Priority (High/Medium/Low)<br>
+                    Each row becomes one test case. Modules are created automatically.
+                </div>
+                <a href="/Admin/DownloadImportTemplate" style="font-size:12px;color:#1565C0;text-decoration:underline;display:inline-block;margin-bottom:16px">↓ Download sample template (CSV)</a>
+
+                <form method="post" action="/Admin/ImportTestCases" enctype="multipart/form-data">
+                    <div style="margin-bottom:16px">
+                        <label style="font-size:12px;font-weight:600;color:#546E7A;display:block;margin-bottom:6px">SELECT FILE</label>
+                        <input type="file" name="file" accept=".csv,.xlsx" required class="form-control form-control-sm">
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                        <button type="button" onclick="document.getElementById('importModal').style.display='none'" class="btn btn-sm btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-success">Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Add Module inline form (hidden by default) -->
@@ -117,16 +155,18 @@
             <!-- Submodules — collapsed by default -->
             <div class="tc-module-body" style="display:none">
                 @{ int subIdx = 0; }
-                @foreach (var (submoduleName, cases) in submodules)
+                @foreach (var (submoduleName, groups) in submodules)
                 {
                     var sId = $"s{mId}_{subIdx++}";
+                    var subTotal = groups.Values.Sum(l => l.Count);
+                    bool hasGroups = groups.Any(g => !string.IsNullOrEmpty(g.Key));
                     <div style="border-bottom:1px solid #F5F5F5">
                         <!-- Submodule header -->
                         <div style="background:#F9F9F9;padding:8px 16px 8px 32px;display:flex;align-items:center;justify-content:space-between">
                             <div style="display:flex;align-items:center;gap:10px">
                                 <button onclick="toggleSubmodule(this)" style="background:none;border:none;color:#546E7A;font-size:13px;cursor:pointer;padding:0">▸</button>
                                 <span style="font-weight:600;color:#37474F;font-size:13px">@submoduleName</span>
-                                <span style="font-size:11px;color:#90A4AE">@cases.Count cases</span>
+                                <span style="font-size:11px;color:#90A4AE">@subTotal cases</span>
                             </div>
                             <div style="display:flex;gap:6px">
                                 <button class="tc-btn tc-btn-muted" onclick="toggleRename('rename-sub-@sId')">Rename</button>
@@ -151,42 +191,53 @@
                             </form>
                         </div>
 
-                        <!-- Test cases table — collapsed by default -->
+                        <!-- Groups + Test cases — collapsed by default -->
                         <div class="tc-sub-body" style="display:none">
-                            <table style="width:100%;font-size:12px;border-collapse:collapse">
-                                <thead>
-                                    <tr style="background:#FAFAFA;color:#90A4AE;text-transform:uppercase;font-size:10px;letter-spacing:.5px">
-                                        <th style="padding:6px 16px 6px 48px;text-align:left">ID</th>
-                                        <th style="padding:6px 8px;text-align:left">Scenario</th>
-                                        <th style="padding:6px 8px;text-align:left">Priority</th>
-                                        <th style="padding:6px 16px;text-align:right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var tc in cases)
-                                    {
-                                        <tr style="border-top:1px solid #F5F5F5">
-                                            <td style="padding:8px 8px 8px 48px;color:#1565C0;font-weight:600;white-space:nowrap">@tc.Id</td>
-                                            <td style="padding:8px;color:#37474F">@tc.Scenario</td>
-                                            <td style="padding:8px">
-                                                <span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;
-                                                    background:@(tc.Priority=="High"?"#FFEBEE":tc.Priority=="Medium"?"#FFF3E0":"#E8F5E9");
-                                                    color:@(tc.Priority=="High"?"#C62828":tc.Priority=="Medium"?"#E65100":"#2E7D32")">
-                                                    @tc.Priority
-                                                </span>
-                                            </td>
-                                            <td style="padding:8px 16px;text-align:right;white-space:nowrap">
-                                                <a href="/Admin/EditTestCase/@tc.Id" class="tc-btn tc-btn-muted">Edit</a>
-                                                <form method="post" action="/Admin/DeleteTestCase" style="display:inline;margin:0"
-                                                      onsubmit="return confirm('Delete test case @tc.Id?')">
-                                                    <input type="hidden" name="id" value="@tc.Id">
-                                                    <button type="submit" class="tc-btn tc-btn-danger">Delete</button>
-                                                </form>
-                                            </td>
+                            @foreach (var (groupName, cases) in groups)
+                            {
+                                @if (hasGroups && !string.IsNullOrEmpty(groupName))
+                                {
+                                    <!-- Group header -->
+                                    <div style="background:#F0F4FF;padding:6px 16px 6px 52px;border-top:1px solid #E8EAF6;display:flex;align-items:center;gap:8px">
+                                        <span style="color:#3949AB;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">@groupName</span>
+                                        <span style="font-size:10px;color:#9FA8DA">@cases.Count cases</span>
+                                    </div>
+                                }
+                                <table style="width:100%;font-size:12px;border-collapse:collapse">
+                                    <thead>
+                                        <tr style="background:#FAFAFA;color:#90A4AE;text-transform:uppercase;font-size:10px;letter-spacing:.5px">
+                                            <th style="padding:6px 16px 6px @(hasGroups?"64px":"48px");text-align:left">ID</th>
+                                            <th style="padding:6px 8px;text-align:left">Scenario</th>
+                                            <th style="padding:6px 8px;text-align:left">Priority</th>
+                                            <th style="padding:6px 16px;text-align:right">Actions</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var tc in cases)
+                                        {
+                                            <tr style="border-top:1px solid #F5F5F5">
+                                                <td style="padding:8px 8px 8px @(hasGroups?"64px":"48px");color:#1565C0;font-weight:600;white-space:nowrap">@tc.Id</td>
+                                                <td style="padding:8px;color:#37474F">@tc.Scenario</td>
+                                                <td style="padding:8px">
+                                                    <span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;
+                                                        background:@(tc.Priority=="High"?"#FFEBEE":tc.Priority=="Medium"?"#FFF3E0":"#E8F5E9");
+                                                        color:@(tc.Priority=="High"?"#C62828":tc.Priority=="Medium"?"#E65100":"#2E7D32")">
+                                                        @tc.Priority
+                                                    </span>
+                                                </td>
+                                                <td style="padding:8px 16px;text-align:right;white-space:nowrap">
+                                                    <a href="/Admin/EditTestCase/@tc.Id" class="tc-btn tc-btn-muted">Edit</a>
+                                                    <form method="post" action="/Admin/DeleteTestCase" style="display:inline;margin:0"
+                                                          onsubmit="return confirm('Delete test case @tc.Id?')">
+                                                        <input type="hidden" name="id" value="@tc.Id">
+                                                        <button type="submit" class="tc-btn tc-btn-danger">Delete</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
                         </div>
                     </div>
                 }

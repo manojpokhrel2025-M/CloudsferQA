@@ -55,6 +55,16 @@ using (var scope = app.Services.CreateScope())
             ""SortOrder""  INTEGER NOT NULL
         );");
 
+    db.Database.ExecuteSqlRaw(@"
+        CREATE TABLE IF NOT EXISTS ""ActivityLogs"" (
+            ""Id""          INTEGER NOT NULL CONSTRAINT ""PK_ActivityLogs"" PRIMARY KEY AUTOINCREMENT,
+            ""Action""      TEXT NOT NULL,
+            ""Details""     TEXT NOT NULL,
+            ""PerformedBy"" TEXT NOT NULL,
+            ""PerformedAt"" TEXT NOT NULL,
+            ""Category""    TEXT NOT NULL
+        );");
+
     DataSeeder.Seed(db, env.WebRootPath, config);
 }
 
