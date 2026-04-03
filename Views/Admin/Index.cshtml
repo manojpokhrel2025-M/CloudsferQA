@@ -68,14 +68,43 @@
     <div style="background:#FFF8F8;border:1px solid #FFCDD2;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
             <div style="font-weight:700;color:#C62828;font-size:14px">🗑 Reset All Sessions</div>
-            <div style="font-size:12px;color:#78909C;margin-top:2px">Permanently deletes all test sessions and results for every user. This cannot be undone.</div>
+            <div style="font-size:12px;color:#78909C;margin-top:2px">Permanently deletes all test sessions and results for every user. Requires PIN. This cannot be undone.</div>
         </div>
-        <form method="post" action="/Admin/ResetAllSessions"
-              onsubmit="return confirm('⚠️ This will permanently delete ALL sessions and results for ALL users.\n\nThis cannot be undone. Are you sure?')">
-            <button type="submit" style="background:#C62828;color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
-                Reset All Sessions
-            </button>
-        </form>
+        <button type="button" onclick="document.getElementById('resetPinModal').style.display='flex'"
+                style="background:#C62828;color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+            Reset All Sessions
+        </button>
+    </div>
+
+    <!-- Reset PIN Modal -->
+    <div id="resetPinModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;width:360px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.25);overflow:hidden">
+            <!-- Header -->
+            <div style="background:#C62828;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <span style="color:#fff;font-weight:700;font-size:14px">🔒 Enter PIN to Reset</span>
+                <button onclick="closeResetModal()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>
+            </div>
+            <!-- Body -->
+            <form method="post" action="/Admin/ResetAllSessions" onsubmit="return validatePin()">
+                <div style="padding:24px 20px">
+                    <div style="font-size:13px;color:#546E7A;margin-bottom:16px;line-height:1.6">
+                        This will permanently delete <strong>all sessions and results</strong> for every user.<br>Enter the admin PIN to confirm.
+                    </div>
+                    <div style="margin-bottom:8px">
+                        <label style="font-size:11px;font-weight:600;color:#546E7A;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Admin PIN</label>
+                        <input type="password" id="resetPinInput" name="pin" maxlength="10"
+                               placeholder="Enter PIN"
+                               style="width:100%;padding:10px 14px;border:2px solid #FFCDD2;border-radius:8px;font-size:18px;letter-spacing:6px;text-align:center;font-family:inherit;outline:none;box-sizing:border-box"
+                               autocomplete="off">
+                        <div id="resetPinError" style="color:#C62828;font-size:12px;margin-top:6px;display:none">Incorrect PIN. Please try again.</div>
+                    </div>
+                </div>
+                <div style="padding:12px 20px;border-top:1px solid #F0F0F0;display:flex;gap:8px;justify-content:flex-end">
+                    <button type="button" onclick="closeResetModal()" style="background:#ECEFF1;border:none;border-radius:6px;padding:8px 18px;font-size:13px;color:#546E7A;cursor:pointer;font-weight:600;font-family:inherit">Cancel</button>
+                    <button type="submit" style="background:#C62828;border:none;border-radius:6px;padding:8px 20px;font-size:13px;color:#fff;cursor:pointer;font-weight:700;font-family:inherit">Confirm Reset</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Add User -->
@@ -205,6 +234,29 @@
             document.querySelectorAll('#usersTable tbody tr').forEach(row => {
                 row.style.display = (row.dataset.email || '').includes(q) ? '' : 'none';
             });
+        });
+
+        function closeResetModal() {
+            document.getElementById('resetPinModal').style.display = 'none';
+            document.getElementById('resetPinInput').value = '';
+            document.getElementById('resetPinError').style.display = 'none';
+        }
+        function validatePin() {
+            const pin = document.getElementById('resetPinInput').value.trim();
+            if (!pin) {
+                document.getElementById('resetPinError').style.display = 'block';
+                document.getElementById('resetPinError').textContent = 'Please enter the PIN.';
+                return false;
+            }
+            return true;
+        }
+        // Close on backdrop click
+        document.getElementById('resetPinModal').addEventListener('click', function(e) {
+            if (e.target === this) closeResetModal();
+        });
+        // Focus PIN input when modal opens
+        document.querySelector('[onclick*="resetPinModal"]').addEventListener('click', function() {
+            setTimeout(() => document.getElementById('resetPinInput').focus(), 100);
         });
     </script>
 }

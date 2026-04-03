@@ -9,9 +9,14 @@ namespace CloudsferQA.Controllers;
 
 public class AdminController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext  _db;
+    private readonly IConfiguration _config;
 
-    public AdminController(AppDbContext db) => _db = db;
+    public AdminController(AppDbContext db, IConfiguration config)
+    {
+        _db     = db;
+        _config = config;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // USER LIST
@@ -656,9 +661,16 @@ public class AdminController : Controller
     // ── RESET ALL SESSIONS ───────────────────────────────────────────────────
 
     [HttpPost]
-    public async Task<IActionResult> ResetAllSessions()
+    public async Task<IActionResult> ResetAllSessions(string pin)
     {
         if (await RequireAdminAsync() == null) return Unauthorized();
+
+        var correctPin = _config["Admin:ResetPin"] ?? "1984";
+        if (pin != correctPin)
+        {
+            TempData["Error"] = "Incorrect PIN. Reset cancelled.";
+            return RedirectToAction("Index");
+        }
 
         var results  = await _db.Results.ToListAsync();
         var sessions = await _db.Sessions.ToListAsync();
