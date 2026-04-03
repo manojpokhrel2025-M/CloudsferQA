@@ -33,7 +33,7 @@ public class SessionController : Controller
 
         // Previous sessions for this user (newest first) for the "existing" picker
         var previousSessions = await _db.Sessions
-            .Where(s => s.UserId == user.Id)
+            .Where(s => s.UserId == user.Id && !s.IsArchived)
             .OrderByDescending(s => s.StartedAt)
             .ToListAsync();
         ViewBag.PreviousSessions = previousSessions;
@@ -62,7 +62,7 @@ public class SessionController : Controller
         {
             // Block new session if last session is still In Progress
             var lastSession = await _db.Sessions
-                .Where(s => s.UserId == user.Id)
+                .Where(s => s.UserId == user.Id && !s.IsArchived)
                 .OrderByDescending(s => s.StartedAt)
                 .FirstOrDefaultAsync();
 

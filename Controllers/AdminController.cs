@@ -40,14 +40,14 @@ public class AdminController : Controller
 
         // Count sessions per user
         var sessionCounts = await _db.Sessions
-            .Where(s => s.UserId != null)
+            .Where(s => s.UserId != null && !s.IsArchived)
             .GroupBy(s => s.UserId!.Value)
             .Select(g => new { UserId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.UserId, x => x.Count);
 
         // Result counts per user (aggregate across all their sessions)
         var userStats = await _db.Sessions
-            .Where(s => s.UserId != null)
+            .Where(s => s.UserId != null && !s.IsArchived)
             .Join(_db.Results, s => s.Id, r => r.SessionId,
                   (s, r) => new { s.UserId, r.Status })
             .GroupBy(x => x.UserId!.Value)
@@ -672,15 +672,33 @@ public class AdminController : Controller
             return RedirectToAction("Index");
         }
 
-        var results  = await _db.Results.ToListAsync();
-        var sessions = await _db.Sessions.ToListAsync();
-
-        _db.Results.RemoveRange(results);
-        _db.Sessions.RemoveRange(sessions);
+        var sessions = await _db.Sessions.Where(s => !s.IsArchived).ToListAsync();
+        sessions.ForEach(s => { s.IsArchived = true; s.ArchivedAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
 
-        await LogAsync("ResetAllSessions", $"All sessions and results wiped ({sessions.Count} sessions, {results.Count} results deleted)", category: "User");
-        TempData["Success"] = $"All sessions cleared — {sessions.Count} session(s) and {results.Count} result(s) deleted. Everyone starts fresh.";
+        await LogAsync("ResetAllSessions", $"All sessions archived ({sessions.Count} sessions) — backup kept, restorable", category: "User");
+        TempData["Success"] = $"{sessions.Count} session(s) archived. Everyone starts fresh. You can restore from backup anytime.";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RestoreArchivedSessions(string pin)
+    {
+        if (await RequireAdminAsync() == null) return Unauthorized();
+
+        var correctPin = _config["Admin:ResetPin"] ?? "1984";
+        if (pin != correctPin)
+        {
+            TempData["Error"] = "Incorrect PIN. Restore cancelled.";
+            return RedirectToAction("Index");
+        }
+
+        var sessions = await _db.Sessions.Where(s => s.IsArchived).ToListAsync();
+        sessions.ForEach(s => { s.IsArchived = false; s.ArchivedAt = null; });
+        await _db.SaveChangesAsync();
+
+        await LogAsync("RestoreArchivedSessions", $"All archived sessions restored ({sessions.Count} sessions)", category: "User");
+        TempData["Success"] = $"{sessions.Count} archived session(s) restored successfully.";
         return RedirectToAction("Index");
     }
 

@@ -28,6 +28,7 @@ public class DashboardController : Controller
         ViewBag.CurrentUser = user;
 
         var sessions = await _db.Sessions
+            .Where(s => !s.IsArchived)
             .OrderByDescending(s => s.StartedAt)
             .ToListAsync();
 

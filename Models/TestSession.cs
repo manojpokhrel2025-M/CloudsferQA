@@ -10,6 +10,8 @@ public class TestSession
     public DateTime  StartedAt   { get; set; }
     public DateTime? CompletedAt { get; set; }
     public string    Status      { get; set; } = "In Progress"; // In Progress | Completed | Skipped | Halted
+    public bool      IsArchived  { get; set; } = false;
+    public DateTime? ArchivedAt  { get; set; }
 
     public User?             User    { get; set; }
     public List<TestResult>  Results { get; set; } = new();

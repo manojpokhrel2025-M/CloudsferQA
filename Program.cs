@@ -56,11 +56,12 @@ using (var scope = app.Services.CreateScope())
         );");
 
     // Add Status column to Sessions if it doesn't exist yet (SQLite throws if already exists)
-    try
-    {
-        db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""Status"" TEXT NOT NULL DEFAULT 'In Progress';");
-    }
-    catch { /* column already exists — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""Status"" TEXT NOT NULL DEFAULT 'In Progress';"); }
+    catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""IsArchived"" INTEGER NOT NULL DEFAULT 0;"); }
+    catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""ArchivedAt"" TEXT NULL;"); }
+    catch { }
 
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ""ActivityLogs"" (
