@@ -66,16 +66,17 @@
         <span class="chip chip-blocked" id="chipBlocked">@blockedCount Blocked</span>
         <button type="button" onclick="openExportModal()" class="btn-export" style="cursor:pointer;font-family:inherit">↓ Export</button>
         <a href="/Dashboard" class="btn-export" style="background:rgba(255,255,255,.1)">Dashboard</a>
-        @if (Model.Session.CompletedAt == null)
-        {
-            <button type="button" onclick="openCompleteModal()" class="btn-export" style="background:#43A047;border-color:#388E3C;cursor:pointer;font-family:inherit;font-weight:600">
-                ✓ Complete
-            </button>
+        @{
+            var statusStyle = Model.Session.Status switch {
+                "Completed"   => "background:#2E7D32;border-color:#1B5E20",
+                "Skipped"     => "background:#F57F17;border-color:#E65100",
+                "Halted"      => "background:#C62828;border-color:#B71C1C",
+                _             => "background:#1565C0;border-color:#0D47A1"
+            };
         }
-        else
-        {
-            <span class="btn-export" style="background:#388E3C;border-color:#2E7D32;opacity:.8;cursor:default">✓ Completed</span>
-        }
+        <button type="button" onclick="openCompleteModal()" class="btn-export" style="@statusStyle;cursor:pointer;font-family:inherit;font-weight:600">
+            ⚑ @Model.Session.Status
+        </button>
         <form method="post" action="/Auth/Logout" style="display:inline;margin:0">
             <button type="submit" class="btn-export" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);cursor:pointer;font-family:inherit">
                 Logout
@@ -268,57 +269,70 @@
     </div>
 </div>
 
-<!-- Complete Modal -->
+<!-- Version Status Modal -->
 <div id="completeModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:12px;width:480px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div style="background:#fff;border-radius:12px;width:460px;max-width:95vw;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)">
 
         <!-- Header -->
-        <div style="background:#2E7D32;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-            <span style="color:#fff;font-weight:700;font-size:14px">✓ Complete Session</span>
+        <div style="background:#1565C0;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+            <span style="color:#fff;font-weight:700;font-size:14px">⚑ Update Version Status</span>
             <button onclick="closeCompleteModal()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>
         </div>
 
         <!-- Body -->
-        <div style="padding:20px;overflow-y:auto;flex:1">
-            <div style="font-size:13px;color:#546E7A;margin-bottom:14px;line-height:1.6">
-                Select which modules were tested in this session. Then click <strong>Mark as Completed</strong> to finalise.
+        <div style="padding:20px">
+            <div style="font-size:13px;color:#546E7A;margin-bottom:16px;line-height:1.6">
+                Set the status for <strong>@Model.Session.Version</strong> (@Model.Session.Environment). This will close the session and return you to the start page.
             </div>
 
-            <div style="font-size:12px;font-weight:600;color:#546E7A;margin-bottom:10px">MODULES TESTED</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
 
-            <!-- Select All toggle -->
-            <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F5F5F5;border-radius:6px;cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;color:#37474F">
-                <input type="checkbox" id="completeSelectAll" onchange="toggleAllCompleteModules(this)" checked style="width:15px;height:15px">
-                All Modules
-            </label>
+                <button onclick="confirmComplete('Completed')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #A5D6A7;border-radius:10px;background:#F1F8E9;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:22px">✅</span>
+                    <div>
+                        <div style="font-weight:700;color:#2E7D32;font-size:14px">Completed</div>
+                        <div style="font-size:12px;color:#78909C;margin-top:2px">All planned testing done for this version</div>
+                    </div>
+                </button>
 
-            <div id="completeModuleList" style="display:flex;flex-direction:column;gap:4px">
-                @foreach (var m in activeModules)
-                {
-                    var total  = Model.TestCases.Count(tc => tc.Module == m);
-                    var tested = Model.Results.Count(r => Model.TestCases.Any(tc => tc.Module == m && tc.Id == r.TestCaseId) && r.Status != "pending");
-                    var pct    = total > 0 ? (int)((double)tested / total * 100) : 0;
-                    var pillColor = pct == 100 ? "#E8F5E9" : pct > 0 ? "#FFF3E0" : "#F5F5F5";
-                    var textColor = pct == 100 ? "#2E7D32" : pct > 0 ? "#E65100" : "#90A4AE";
-                    <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #E0E0E0;border-radius:6px;cursor:pointer;font-size:13px;color:#37474F" class="complete-module-item">
-                        <input type="checkbox" class="complete-module-cb" value="@m" checked style="width:14px;height:14px" onchange="updateCompleteSelectAll()">
-                        <span style="flex:1">@m</span>
-                        <span style="font-size:11px;background:@pillColor;color:@textColor;padding:2px 8px;border-radius:10px;font-weight:600">@tested/@total tested</span>
-                    </label>
-                }
+                <button onclick="confirmComplete('Skipped')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #FFE082;border-radius:10px;background:#FFFDE7;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:22px">⏭</span>
+                    <div>
+                        <div style="font-weight:700;color:#F57F17;font-size:14px">Skipped</div>
+                        <div style="font-size:12px;color:#78909C;margin-top:2px">Version skipped — testing not performed</div>
+                    </div>
+                </button>
+
+                <button onclick="confirmComplete('Halted')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #FFCDD2;border-radius:10px;background:#FFF8F8;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:22px">🛑</span>
+                    <div>
+                        <div style="font-weight:700;color:#C62828;font-size:14px">Halted</div>
+                        <div style="font-size:12px;color:#78909C;margin-top:2px">Testing stopped — blockers or issues encountered</div>
+                    </div>
+                </button>
+
+                <button onclick="confirmComplete('In Progress')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #BBDEFB;border-radius:10px;background:#E3F2FD;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:22px">🔄</span>
+                    <div>
+                        <div style="font-weight:700;color:#1565C0;font-size:14px">In Progress</div>
+                        <div style="font-size:12px;color:#78909C;margin-top:2px">Keep session open — still testing</div>
+                    </div>
+                </button>
+
             </div>
         </div>
 
         <!-- Footer -->
-        <div style="padding:14px 20px;border-top:1px solid #F0F0F0;display:flex;gap:8px;justify-content:flex-end">
+        <div style="padding:12px 20px;border-top:1px solid #F0F0F0;display:flex;justify-content:flex-end">
             <button onclick="closeCompleteModal()" style="background:#ECEFF1;border:none;border-radius:6px;padding:7px 18px;font-size:13px;color:#546E7A;cursor:pointer;font-weight:600">Cancel</button>
-            <button onclick="confirmComplete()" style="background:#2E7D32;border:none;border-radius:6px;padding:7px 20px;font-size:13px;color:#fff;cursor:pointer;font-weight:600">✓ Mark as Completed</button>
         </div>
     </div>
 </div>
 
 <!-- Hidden complete form -->
-<form id="completeForm" method="post" action="/Session/Complete" style="display:none"></form>
+<form id="completeForm" method="post" action="/Session/Complete" style="display:none">
+    <input type="hidden" id="completeStatusInput" name="status" value="Completed">
+</form>
 
 <script>
     function openExportModal() {
@@ -358,18 +372,8 @@
     function closeCompleteModal() {
         document.getElementById('completeModal').style.display = 'none';
     }
-    function toggleAllCompleteModules(cb) {
-        document.querySelectorAll('.complete-module-cb').forEach(c => c.checked = cb.checked);
-    }
-    function updateCompleteSelectAll() {
-        const all     = document.querySelectorAll('.complete-module-cb');
-        const checked = document.querySelectorAll('.complete-module-cb:checked');
-        document.getElementById('completeSelectAll').checked       = all.length === checked.length;
-        document.getElementById('completeSelectAll').indeterminate = checked.length > 0 && checked.length < all.length;
-    }
-    function confirmComplete() {
-        const selected = [...document.querySelectorAll('.complete-module-cb:checked')].map(c => c.value);
-        if (selected.length === 0) { alert('Please select at least one module.'); return; }
+    function confirmComplete(status) {
+        document.getElementById('completeStatusInput').value = status;
         document.getElementById('completeForm').submit();
     }
     // Close complete modal on backdrop click

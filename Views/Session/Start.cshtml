@@ -67,10 +67,16 @@
             <img src="/images/logo.svg" alt="Cloudsfer" height="36">
         </div>
 
+        @if (TempData["Error"] != null)
+        {
+            <div class="auth-alert" style="background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828;margin-bottom:16px;border-radius:8px;padding:10px 14px;font-size:13px">
+                ⚠️ @TempData["Error"]
+            </div>
+        }
         @if (completed != null)
         {
             <div class="auth-alert" style="background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;margin-bottom:16px;border-radius:8px;padding:10px 14px;font-size:13px">
-                ✅ Version <strong>@completed</strong> marked as completed. A new version has been generated below.
+                ✅ <strong>@completed</strong>. A new version has been generated below.
             </div>
         }
         @if (welcome != null)
@@ -171,14 +177,15 @@
                                         {
                                             <span style="font-size:11px;background:#1565C0;color:#fff;padding:2px 8px;border-radius:10px;font-weight:600">Latest Version</span>
                                         }
-                                        @if (s.CompletedAt.HasValue)
-                                        {
-                                            <span style="font-size:11px;background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:10px;font-weight:600">✓ Completed</span>
+                                        @{
+                                            var (sBg, sColor, sIcon) = s.Status switch {
+                                                "Completed"   => ("#E8F5E9", "#2E7D32", "✓"),
+                                                "Skipped"     => ("#FFF8E1", "#F57F17", "⏭"),
+                                                "Halted"      => ("#FFEBEE", "#C62828", "🛑"),
+                                                _             => ("#FFF3E0", "#E65100", "🔄")
+                                            };
                                         }
-                                        else
-                                        {
-                                            <span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:10px;font-weight:600">In Progress</span>
-                                        }
+                                        <span style="font-size:11px;background:@sBg;color:@sColor;padding:2px 8px;border-radius:10px;font-weight:600">@sIcon @s.Status</span>
                                     </div>
                                 </div>
                                 <div style="font-size:12px;color:#78909C;margin-top:4px">

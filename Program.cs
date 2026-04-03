@@ -55,6 +55,13 @@ using (var scope = app.Services.CreateScope())
             ""SortOrder""  INTEGER NOT NULL
         );");
 
+    // Add Status column to Sessions if it doesn't exist yet (SQLite throws if already exists)
+    try
+    {
+        db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""Status"" TEXT NOT NULL DEFAULT 'In Progress';");
+    }
+    catch { /* column already exists — safe to ignore */ }
+
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ""ActivityLogs"" (
             ""Id""          INTEGER NOT NULL CONSTRAINT ""PK_ActivityLogs"" PRIMARY KEY AUTOINCREMENT,

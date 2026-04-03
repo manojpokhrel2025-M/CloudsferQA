@@ -60,13 +60,26 @@ public class SessionController : Controller
         }
         else
         {
+            // Block new session if last session is still In Progress
+            var lastSession = await _db.Sessions
+                .Where(s => s.UserId == user.Id)
+                .OrderByDescending(s => s.StartedAt)
+                .FirstOrDefaultAsync();
+
+            if (lastSession != null && lastSession.Status == "In Progress")
+            {
+                TempData["Error"] = $"Please update the status of your last version ({lastSession.Version}) before starting a new one.";
+                return RedirectToAction("Start");
+            }
+
             var session = new TestSession
             {
                 UserId      = user.Id,
                 Tester      = user.Email,
                 Version     = version,
                 Environment = environment,
-                StartedAt   = DateTime.UtcNow
+                StartedAt   = DateTime.UtcNow,
+                Status      = "In Progress"
             };
 
             _db.Sessions.Add(session);
@@ -85,7 +98,7 @@ public class SessionController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Complete()
+    public async Task<IActionResult> Complete(string status = "Completed")
     {
         if (await GetCurrentUserAsync() == null) return Unauthorized();
 
@@ -93,16 +106,20 @@ public class SessionController : Controller
             || !int.TryParse(sessionIdStr, out var sessionId))
             return RedirectToAction("Start");
 
+        var validStatuses = new[] { "Completed", "Skipped", "Halted", "In Progress" };
+        if (!validStatuses.Contains(status)) status = "Completed";
+
         var session = await _db.Sessions.FindAsync(sessionId);
-        if (session != null && session.CompletedAt == null)
+        if (session != null)
         {
-            session.CompletedAt = DateTime.UtcNow;
+            session.Status      = status;
+            session.CompletedAt = status != "In Progress" ? DateTime.UtcNow : null;
             await _db.SaveChangesAsync();
         }
 
         // Clear the session cookie so a fresh session is required
         Response.Cookies.Delete(SessionCookie);
-        TempData["Completed"] = session?.Version;
+        TempData["Completed"] = $"{session?.Version} — {status}";
         return RedirectToAction("Start");
     }
 
