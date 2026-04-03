@@ -8,13 +8,6 @@ public class StatsService
 {
     private readonly AppDbContext _db;
 
-    private static readonly List<string> ModuleOrder = new()
-    {
-        "Migration", "Backup", "Restore", "Emails & Notifications",
-        "Registration & Onboarding", "OPA (On-Premise Agent)",
-        "Task Bar", "Administrator", "QA & Dev"
-    };
-
     public StatsService(AppDbContext db) => _db = db;
 
     public async Task<SessionStatsDto?> GetStatsAsync(int sessionId)
@@ -29,9 +22,16 @@ public class StatsService
 
         var resultDict = results.ToDictionary(r => r.TestCaseId);
 
-        // ── Per-module stats in defined order ────────────────────────────
+        // ── Module order: use saved DB order, append any unordered modules ─
+        var savedOrder   = await _db.ModuleOrders.OrderBy(m => m.SortOrder).Select(m => m.ModuleName).ToListAsync();
+        var allModules   = allTestCases.Select(tc => tc.Module).Distinct().ToList();
+        var moduleOrder  = savedOrder.Where(m => allModules.Contains(m))
+                            .Concat(allModules.Where(m => !savedOrder.Contains(m)).OrderBy(m => m))
+                            .ToList();
+
+        // ── Per-module stats ──────────────────────────────────────────────
         var moduleStats = new List<ModuleStatDto>();
-        foreach (var module in ModuleOrder)
+        foreach (var module in moduleOrder)
         {
             var cases = allTestCases.Where(tc => tc.Module == module).ToList();
             if (cases.Count == 0) continue;

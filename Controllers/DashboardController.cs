@@ -35,11 +35,11 @@ public class DashboardController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Data(int sessionId)
+    public async Task<IActionResult> Data(int id)
     {
         if (await GetCurrentUserAsync() == null) return Unauthorized();
 
-        var dto = await _stats.GetStatsAsync(sessionId);
+        var dto = await _stats.GetStatsAsync(id);
         if (dto == null) return NotFound();
         return Json(dto);
     }
