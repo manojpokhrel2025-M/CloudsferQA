@@ -1,0 +1,36 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+CF Grid Auto Refresh,Auto Refresh Trigger,,Verify grid refreshes automatically after a set interval,"1. Open the CF Grid page
+2. Wait for the configured interval",Grid data reloads without user action,High
+CF Grid Auto Refresh,Auto Refresh Trigger,,Verify auto-refresh interval is configurable,"1. Check settings for refresh interval
+2. Change interval value
+3. Reload page",Grid refreshes at new interval,High
+CF Grid Auto Refresh,Auto Refresh Trigger,,Verify auto-refresh can be disabled,"1. Locate auto-refresh toggle
+2. Disable it",Grid stops refreshing automatically — only refreshes on manual action,High
+CF Grid Auto Refresh,Auto Refresh Trigger,,Verify auto-refresh resumes after re-enabling,"1. Disable then re-enable auto-refresh",Grid resumes auto-refreshing at configured interval,High
+CF Grid Auto Refresh,Auto Refresh Trigger,,Verify auto-refresh does not interrupt user interaction,"1. Start editing a row
+2. Wait for refresh interval to pass",Refresh does not reset or cancel active edits,High
+CF Grid Auto Refresh,Grid Data Updates,,Verify newly added records appear after refresh,"1. Add a record in another session or tab
+2. Wait for auto-refresh",New record appears in grid without manual reload,High
+CF Grid Auto Refresh,Grid Data Updates,,Verify updated records show latest values after refresh,"1. Modify a record externally
+2. Wait for auto-refresh",Grid cell shows updated value,High
+CF Grid Auto Refresh,Grid Data Updates,,Verify deleted records are removed from grid after refresh,"1. Delete a record externally
+2. Wait for auto-refresh",Record no longer visible in grid,High
+CF Grid Auto Refresh,Grid Data Updates,,Verify grid row count updates after refresh,"1. Add/remove records
+2. Wait for auto-refresh",Row count in grid and pagination matches new total,Medium
+CF Grid Auto Refresh,Grid Data Updates,,Verify sort order is maintained after refresh,"1. Sort grid by a column
+2. Wait for auto-refresh",Sort order preserved after data refreshes,Medium
+CF Grid Auto Refresh,Grid Data Updates,,Verify active filters are preserved after refresh,"1. Apply a column filter
+2. Wait for auto-refresh",Filter still applied — only matching rows shown,High
+CF Grid Auto Refresh,Grid Data Updates,,Verify current page stays selected after refresh,"1. Navigate to page 3 of grid
+2. Wait for auto-refresh",Grid stays on page 3 after refresh,Medium
+CF Grid Auto Refresh,Visual Feedback,,Verify a visual indicator shows when refresh is in progress,"1. Watch grid during auto-refresh",Spinner or subtle loading indicator visible during refresh,Medium
+CF Grid Auto Refresh,Visual Feedback,,Verify grid does not flicker or blank out during refresh,"1. Watch grid during auto-refresh",Data remains visible — smooth update without blank flash,High
+CF Grid Auto Refresh,Visual Feedback,,Verify last refreshed timestamp is shown on grid,"1. Open CF Grid page",Timestamp shows when data was last refreshed,Medium
+CF Grid Auto Refresh,Visual Feedback,,Verify manual refresh button triggers immediate refresh,"1. Click manual refresh button",Grid data reloads immediately,High
+CF Grid Auto Refresh,Error Handling,,Verify grid handles server error during refresh gracefully,"1. Simulate server error during refresh",Error message shown — previous data preserved,High
+CF Grid Auto Refresh,Error Handling,,Verify grid retries after a failed refresh attempt,"1. Cause refresh to fail once
+2. Wait for next interval",Grid retries and loads data on next cycle,Medium
+CF Grid Auto Refresh,Error Handling,,Verify user is notified if refresh fails repeatedly,"1. Cause multiple consecutive refresh failures",Warning or notification shown to user,Medium
+CF Grid Auto Refresh,Performance,,Verify auto-refresh does not cause memory leak over extended use,"1. Leave CF Grid open for 30+ minutes
+2. Monitor browser memory",Memory usage stable — no continuous increase,High
+CF Grid Auto Refresh,Performance,,Verify refresh response time is within acceptable limit (under 3 sec),"1. Monitor network during refresh",Refresh completes within 3 seconds under normal load,Medium

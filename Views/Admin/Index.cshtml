@@ -111,6 +111,47 @@
         </div>
     </div>
 
+    <!-- Template Downloads -->
+    <div class="dash-card mb-4">
+        <div class="dash-card-title">📥 Module Test Case Templates</div>
+        <p style="font-size:12px;color:#78909C;margin:6px 0 16px">Download pre-built CSV templates for each module. Fill them in and import via Test Cases → Import.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
+            @{
+                var templates = new[]
+                {
+                    ("01_Migration.csv",              "Migration"),
+                    ("02_Backup.csv",                 "Backup"),
+                    ("03_Restore.csv",                "Restore"),
+                    ("04_Emails_Notifications.csv",   "Emails & Notifications"),
+                    ("05_Registration_Onboarding.csv","Registration & Onboarding"),
+                    ("06_OPA_OnPremise_Agent.csv",    "OPA (On-Premise Agent)"),
+                    ("07_TaskBar.csv",                "Task Bar"),
+                    ("08_Administrator.csv",          "Administrator"),
+                    ("09_QA_Dev.csv",                 "QA & Dev"),
+                    ("10_Pre_Validation.csv",         "Pre-Validation"),
+                    ("11_CF_Grid_Auto_Refresh.csv",   "CF Grid Auto Refresh"),
+                    ("12_Report_AdminReport.csv",     "Report – Admin Report"),
+                    ("13_Report_ClientReport.csv",    "Report – Client Report"),
+                };
+            }
+            @foreach (var (file, label) in templates)
+            {
+                <a href="/Admin/DownloadTemplate?file=@file" download
+                   style="display:flex;align-items:center;gap:10px;background:#F8FAFE;border:1px solid #E3ECF8;border-radius:8px;padding:10px 14px;text-decoration:none;color:#1565C0;font-size:13px;font-weight:600;transition:background .15s"
+                   onmouseover="this.style.background='#E3ECF8'" onmouseout="this.style.background='#F8FAFE'">
+                    <span style="font-size:18px">📄</span>
+                    <span>@label</span>
+                </a>
+            }
+        </div>
+        <div style="margin-top:14px">
+            <a href="/Admin/DownloadAllTemplates"
+               style="display:inline-flex;align-items:center;gap:8px;background:#1565C0;color:#fff;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:700;text-decoration:none">
+                ⬇ Download All as ZIP
+            </a>
+        </div>
+    </div>
+
     <!-- Add User -->
     <div class="dash-card mb-4">
         <div class="dash-card-title">Add User to Directory</div>

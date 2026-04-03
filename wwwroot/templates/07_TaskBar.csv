@@ -1,0 +1,37 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Task Bar,Task List,,Verify all active tasks are listed in the Task Bar,"1. Start multiple migrations and backups
+2. Open Task Bar",All running tasks visible in the list,High
+Task Bar,Task List,,Verify completed tasks appear in Task Bar history,"1. Complete a migration
+2. Open Task Bar",Completed task visible with Completed status,High
+Task Bar,Task List,,Verify Task Bar shows correct task type (Migration / Backup / Restore),"1. Run one migration and one backup
+2. Open Task Bar",Each task shows correct type icon and label,Medium
+Task Bar,Task List,,Verify Task Bar shows task source and destination,"1. Start a migration
+2. Open Task Bar",Source and destination paths shown for the task,Medium
+Task Bar,Task List,,Verify Task Bar updates without manual page refresh,"1. Start a task
+2. Watch Task Bar without refreshing page",Status and progress update automatically,High
+Task Bar,Task Progress,,Verify progress percentage shown for running tasks,"1. Start a migration
+2. Open Task Bar during execution",Progress percentage visible and increasing,High
+Task Bar,Task Progress,,Verify progress bar updates in real time,"1. Start a large migration
+2. Watch progress bar in Task Bar",Bar fills progressively as files are processed,High
+Task Bar,Task Progress,,Verify file count progress shown (processed/total),"1. Start a task
+2. Observe Task Bar",Shows X of Y files processed,Medium
+Task Bar,Task Progress,,Verify estimated time remaining shown for running tasks,"1. Start a migration
+2. Check Task Bar",ETA or time remaining displayed,Low
+Task Bar,Task Actions,,Verify Pause button is available for running tasks,"1. Start a migration
+2. Open Task Bar",Pause button visible for Running tasks,High
+Task Bar,Task Actions,,Verify task pauses when Pause is clicked,"1. Start migration
+2. Click Pause in Task Bar",Task pauses — status = Paused,High
+Task Bar,Task Actions,,Verify Resume button available for paused tasks,"1. Pause a task
+2. Check Task Bar",Resume button visible for Paused tasks,High
+Task Bar,Task Actions,,Verify task resumes when Resume is clicked,"1. Pause a task
+2. Click Resume",Task resumes from where it was paused,High
+Task Bar,Task Actions,,Verify Cancel button available for running tasks,"1. Start a task
+2. Open Task Bar",Cancel button visible for Running tasks,High
+Task Bar,Task Actions,,Verify task stops when Cancel is clicked,"1. Start a task
+2. Click Cancel in Task Bar",Task stops — status updated to Cancelled/Stopped,High
+Task Bar,Task Actions,,Verify Retry available for failed tasks,"1. Trigger a failed task
+2. Open Task Bar",Retry button visible for Failed tasks,High
+Task Bar,Task Notifications,,Verify in-app notification shown when task completes,"1. Start and complete a task
+2. Watch for notification",Toast or notification shown on completion,Medium
+Task Bar,Task Notifications,,Verify in-app notification shown when task fails,"1. Trigger a failed task",Notification shown with failure message,High
+Task Bar,Task Notifications,,Verify notification links to task details,"1. Click on completion notification",Opens task details or report page,Low

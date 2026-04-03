@@ -1,0 +1,34 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Emails & Notifications,Email Delivery,,Verify migration completion email is sent to user,"1. Complete a migration
+2. Check user email inbox",Email received with migration summary and status,High
+Emails & Notifications,Email Delivery,,Verify backup completion email is sent to user,"1. Complete a backup run
+2. Check user email inbox",Email received with backup summary and status,High
+Emails & Notifications,Email Delivery,,Verify email sent when migration fails,"1. Trigger a failed migration
+2. Check inbox",Failure notification email received with error details,High
+Emails & Notifications,Email Delivery,,Verify email sent when backup fails,"1. Trigger a failed backup
+2. Check inbox",Failure notification email received with error details,High
+Emails & Notifications,Email Delivery,,Verify email not sent when notifications disabled,"1. Disable email notifications in settings
+2. Complete a migration",No email sent,Medium
+Emails & Notifications,Email Delivery,,Verify email delivery within acceptable time (under 5 min),"1. Complete a migration
+2. Note exact completion time
+3. Check when email arrives",Email arrives within 5 minutes of event,Medium
+Emails & Notifications,Email Delivery,,Verify emails are not sent to deactivated users,"1. Deactivate a user
+2. Run migration under their account",No email sent to deactivated user,Medium
+Emails & Notifications,Notification Settings,,Verify user can enable email notifications,"1. Go to Notification Settings
+2. Enable email notifications
+3. Save",Setting saved — emails sent on next event,High
+Emails & Notifications,Notification Settings,,Verify user can disable email notifications,"1. Go to Notification Settings
+2. Disable email notifications
+3. Save",Setting saved — no emails sent on next event,High
+Emails & Notifications,Notification Settings,,Verify admin can configure SMTP settings,"1. Go to Admin > SMTP Settings
+2. Enter host port username password
+3. Save and test",Test email sent successfully with new SMTP config,High
+Emails & Notifications,Notification Settings,,Verify notification type toggles work independently,"1. Enable only Backup notifications
+2. Run migration and backup",Only backup notification sent — no migration email,Medium
+Emails & Notifications,Email Content,,Verify migration email contains tester name and version,"1. Complete migration
+2. Open received email",Email body includes tester email and version identifier,Medium
+Emails & Notifications,Email Content,,Verify backup email contains source and target info,"1. Complete backup
+2. Open received email",Email shows source type target type and file count,Medium
+Emails & Notifications,Email Content,,Verify email links are clickable and lead to correct pages,"1. Open notification email
+2. Click any links in the email",Links open correct pages in the application,Medium
+Emails & Notifications,Email Content,,Verify email subject line clearly identifies the event type,"1. Check subject line of received notification",Subject clearly states event type (Migration Completed / Backup Failed etc),Low

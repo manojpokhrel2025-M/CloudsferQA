@@ -1,0 +1,56 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+QA & Dev,Test Session,,Verify QA user can start a new test session,"1. Log in as QA user
+2. Go to Start Testing
+3. Click Start New Session",New session created — test runner loads with all modules,High
+QA & Dev,Test Session,,Verify new session is blocked if last session is still In Progress,"1. Start a session without completing it
+2. Try to start another session",Error shown — must complete previous session first,High
+QA & Dev,Test Session,,Verify session version number increments with each new session,"1. Complete a session
+2. Start a new one",New session shows next version number (e.g. v2 after v1),High
+QA & Dev,Test Session,,Verify session shows correct start date and time,"1. Start a new session
+2. Check session header",Start date and time shown correctly,Medium
+QA & Dev,Test Session,,Verify Version Status can be updated to Completed,"1. Click Version Status button in test runner
+2. Check module list
+3. Select Completed",Session status updated to Completed — shown on session card,High
+QA & Dev,Test Session,,Verify Version Status can be updated to Skipped,"1. Open Version Status modal
+2. Select Skipped",Session status updated to Skipped,High
+QA & Dev,Test Session,,Verify Version Status can be updated to Halted,"1. Open Version Status modal
+2. Select Halted",Session status updated to Halted,High
+QA & Dev,Test Session,,Verify Version Status modal shows module checklist before status selection,"1. Click Version Status button",Modal shows list of modules with tested/total counts,High
+QA & Dev,Test Session,,Verify previous session versions are listed on Start Testing page,"1. Go to Start Testing page",All previous sessions listed with version status and date,High
+QA & Dev,Test Session,,Verify status badge shows correct color per version status,"1. Check session list on Start Testing page",Completed = green Skipped = yellow Halted = red In Progress = blue,Medium
+QA & Dev,Test Execution,,Verify all modules are visible in the sidebar,"1. Start a session
+2. Check sidebar",All modules listed with test case counts,High
+QA & Dev,Test Execution,,Verify clicking a module loads its test cases,"1. Click any module in sidebar",Test cases for that module display in main area,High
+QA & Dev,Test Execution,,Verify tester can mark a test case as Pass,"1. Click Pass on a test case",Case marked Pass — count updates in header,High
+QA & Dev,Test Execution,,Verify tester can mark a test case as Fail,"1. Click Fail on a test case",Case marked Fail — count updates in header,High
+QA & Dev,Test Execution,,Verify tester can mark a test case as Blocked,"1. Click Blocked on a test case",Case marked Blocked — count updates in header,High
+QA & Dev,Test Execution,,Verify result is saved automatically without page reload,"1. Mark a test case result
+2. Switch to another module and return",Previous result still saved,High
+QA & Dev,Test Execution,,Verify tester can add a comment to a test case,"1. Click comment icon on a test case
+2. Enter comment
+3. Save",Comment saved and visible on the test case,High
+QA & Dev,Test Execution,,Verify tester can attach a screenshot or file to a test case,"1. Click attachment icon
+2. Upload a file",File attached — visible on the test case,Medium
+QA & Dev,Test Execution,,Verify progress bar updates as test cases are marked,"1. Mark several test cases
+2. Check module progress bar",Bar fills proportionally to tested cases,Medium
+QA & Dev,Test Filtering,,Verify tester can filter test cases by status (Pass/Fail/Blocked/Untested),"1. Use filter dropdown in test runner
+2. Select a status",Only test cases matching selected status shown,High
+QA & Dev,Test Filtering,,Verify tester can search test cases by keyword,"1. Enter keyword in search box",Matching test cases shown — others hidden,Medium
+QA & Dev,Test Filtering,,Verify filter resets when switching modules,"1. Apply filter in Module A
+2. Switch to Module B",Filter cleared — all test cases shown in Module B,Medium
+QA & Dev,Test Filtering,,Verify tester can filter by priority (High/Medium/Low),"1. Use priority filter",Only matching priority test cases shown,Medium
+QA & Dev,Export,,Verify tester can export test results to Excel,"1. Click Export in test runner
+2. Select Excel",Excel file downloaded with all test results,High
+QA & Dev,Export,,Verify tester can export test results to CSV,"1. Click Export
+2. Select CSV",CSV file downloaded with all test results,High
+QA & Dev,Export,,Verify export modal shows module checklist before exporting,"1. Click Export button",Modal shows list of modules to include/exclude,High
+QA & Dev,Export,,Verify exported file contains correct Pass/Fail/Blocked data,"1. Export results
+2. Open file",Data in file matches what was marked in test runner,High
+QA & Dev,Export,,Verify exported file includes test case ID scenario steps and expected result,"1. Open exported Excel/CSV",All test case fields present in output,Medium
+QA & Dev,Dashboard,,Verify dashboard shows current session pass/fail/blocked counts,"1. Go to Dashboard during active session",Live counts shown for current session,High
+QA & Dev,Dashboard,,Verify dashboard module breakdown chart renders correctly,"1. Open Dashboard",Module chart shows distribution of results,High
+QA & Dev,Dashboard,,Verify dashboard shows percentage completion for current session,"1. Open Dashboard",Completion % shown based on tested/total cases,High
+QA & Dev,Dashboard,,Verify dashboard data updates after marking test cases,"1. Mark several cases
+2. Reload Dashboard",Updated counts and charts shown,High
+QA & Dev,Dashboard,,Verify dashboard shows historical comparison across sessions,"1. Complete multiple sessions
+2. Open Dashboard",Trend or comparison chart visible for past sessions,Medium

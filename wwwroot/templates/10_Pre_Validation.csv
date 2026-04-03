@@ -1,0 +1,47 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Pre-Validation,Upload CSV Flow,,Verify user can upload a valid CSV file to start pre-validation,"1. Go to Pre-Validation
+2. Click Upload CSV
+3. Select a valid CSV file",File uploaded — validation process begins,High
+Pre-Validation,Upload CSV Flow,,Verify upload rejects non-CSV files,"1. Try to upload a .xlsx or .txt file",Error shown — only CSV accepted,High
+Pre-Validation,Upload CSV Flow,,Verify upload rejects empty CSV file,"1. Upload a CSV with no data rows",Error shown — file has no content,High
+Pre-Validation,Upload CSV Flow,,Verify upload rejects CSV missing required columns,"1. Upload CSV without Module or Scenario columns",Error shown — required columns missing,High
+Pre-Validation,Upload CSV Flow,,Verify upload progress indicator shown for large files,"1. Upload a large CSV file",Progress indicator or spinner shown during upload,Medium
+Pre-Validation,Navigation Guards,,Verify user cannot navigate away mid-validation without warning,"1. Start validation
+2. Try to navigate to another page",Warning prompt shown — confirm before leaving,High
+Pre-Validation,Navigation Guards,,Verify browser back button is blocked during active validation,"1. Start validation
+2. Press browser back",Page stays on validation — user warned,Medium
+Pre-Validation,Navigation Guards,,Verify step 1 is not skippable (must upload before proceeding),"1. Try to access step 2 directly via URL",Redirected to step 1 — cannot skip,High
+Pre-Validation,Navigation Guards,,Verify completed steps cannot be re-entered once past,"1. Complete step 1
+2. Try to go back to step 1",Step 1 is locked or shows read-only summary,Medium
+Pre-Validation,Validation Process,,Verify each row in CSV is validated against required fields,"1. Upload CSV with some rows missing fields
+2. Run validation",Rows with missing fields flagged with error,High
+Pre-Validation,Validation Process,,Verify duplicate scenario names are flagged,"1. Upload CSV with duplicate scenarios",Duplicates highlighted — user notified,High
+Pre-Validation,Validation Process,,Verify invalid priority values are flagged,"1. Upload CSV with Priority = 'Critical' (not allowed)",Invalid priority values flagged,Medium
+Pre-Validation,Validation Process,,Verify validation summary shows total errors and warnings,"1. Run validation on a CSV with issues",Summary panel shows error count and warning count,High
+Pre-Validation,Validation Process,,Verify valid rows are clearly distinguished from invalid rows,"1. Run validation",Valid rows shown in green or unmarked — invalid in red,High
+Pre-Validation,Validation Process,,Verify user can download a validation error report,"1. Complete validation with errors
+2. Click Download Error Report",CSV or Excel file of errors downloaded,Medium
+Pre-Validation,Step Indicator,,Verify step indicator shows current step highlighted,"1. Go through validation steps",Active step is visually highlighted in step bar,Medium
+Pre-Validation,Step Indicator,,Verify completed steps show a checkmark in step indicator,"1. Complete step 1 and move to step 2",Step 1 shows completed checkmark,Medium
+Pre-Validation,Step Indicator,,Verify step count matches actual number of steps in flow,"1. Count steps in indicator vs steps in process",Step count matches,Low
+Pre-Validation,Data Integrity,,Verify data from uploaded CSV is preserved exactly in validation output,"1. Upload CSV
+2. Check validated data",No data modification — original values preserved,High
+Pre-Validation,Data Integrity,,Verify special characters in CSV are handled correctly,"1. Upload CSV with special chars in Scenario field (e.g. commas quotes)",No parsing errors — data shown correctly,High
+Pre-Validation,Data Integrity,,Verify UTF-8 encoding supported for CSV upload,"1. Upload CSV with non-ASCII characters (accents etc.)",Characters displayed correctly,Medium
+Pre-Validation,Page 2 Attention Required,,Verify attention-required items are shown on page 2,"1. Upload CSV that triggers warnings
+2. Proceed to page 2",Warning items listed with explanation,High
+Pre-Validation,Page 2 Attention Required,,Verify user can resolve or acknowledge each attention item,"1. View attention items on page 2
+2. Click Acknowledge or Resolve",Item marked as resolved — can proceed,High
+Pre-Validation,Page 2 Attention Required,,Verify user cannot proceed past page 2 with unresolved critical issues,"1. Leave a critical issue unresolved
+2. Try to proceed",Blocked — must resolve critical items first,High
+Pre-Validation,UI Fixes,,Verify all form fields have visible labels,"1. Walk through all validation form steps",Each input has a label,Medium
+Pre-Validation,UI Fixes,,Verify error messages are shown inline near the relevant field,"1. Submit form with invalid data",Error shown next to offending field — not just at top,Medium
+Pre-Validation,UI Fixes,,Verify validation UI is responsive on smaller screens,"1. Resize browser to tablet/mobile width",UI remains usable — no overflow or cut-off elements,Low
+Pre-Validation,Status Indication,,Verify running validation shows spinner or progress bar,"1. Upload large CSV and start validation",Spinner or progress bar visible during processing,High
+Pre-Validation,Status Indication,,Verify completed validation shows success banner,"1. Complete validation with no errors",Green success message shown — ready to proceed,High
+Pre-Validation,Status Indication,,Verify failed validation shows error banner with count,"1. Complete validation with errors",Red error banner with error count displayed,High
+Pre-Validation,Greyed-Out Projects,,Verify projects that fail validation are greyed out in project list,"1. Run validation — some projects fail
+2. Check project list",Failed projects appear greyed out and non-selectable,High
+Pre-Validation,Greyed-Out Projects,,Verify tooltip on greyed project explains why it is disabled,"1. Hover over a greyed project",Tooltip shown with reason for disablement,Medium
+Pre-Validation,Greyed-Out Projects,,Verify passing projects are fully selectable after validation,"1. Complete validation
+2. Try to select a passing project",Project selectable — proceeds normally,High

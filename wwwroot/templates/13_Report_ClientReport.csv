@@ -1,0 +1,53 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Report,Client Report,Migration Backup Report,Verify Client Report shows only the logged-in user's migration data,"1. Log in as a regular user
+2. Go to Report > Client Report
+3. Open Migration Backup Report",Only current user's migrations and backups shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report shows Migration summary with status,"1. Open Client Report > Migration Backup Report",Each migration listed with status (Completed/Failed/Running),High
+Report,Client Report,Migration Backup Report,Verify Client Report shows Backup summary with status,"1. Open Client Report > Migration Backup Report",Each backup listed with source type target type and status,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by date range,"1. Open Client Migration Backup Report
+2. Apply date range filter",Only records within selected date range shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by operation type (Migration / Backup),"1. Apply type filter = Migration",Only migration records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by source type (BIM 360 / Egnyte),"1. Apply source filter = BIM 360",Only BIM 360 source records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by target type (Amazon S3),"1. Apply target filter = Amazon S3",Only Amazon S3 target records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by target type (File System),"1. Apply target filter = File System",Only File System target records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by target type (S3 Compatible),"1. Apply target filter = S3 Compatible",Only S3 Compatible target records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report filters by target type (Azure Blob Storage),"1. Apply target filter = Azure Blob Storage",Only Azure Blob Storage target records shown,High
+Report,Client Report,Migration Backup Report,Verify Client Report shows file count and data size per run,"1. Open Client Report
+2. Check a specific run row",File count and total size shown for that run,Medium
+Report,Client Report,Migration Backup Report,Verify Client Report shows duration of each run,"1. Open report
+2. Check duration column",Duration shown for each completed run,Medium
+Report,Client Report,Migration Backup Report,Verify Client Report shows correct success and failure counts per run,"1. Open Client Report",Success and failure counts match actual run data,High
+Report,Client Report,Migration Backup Report,Verify Client Report can be exported to Excel,"1. Open Migration Backup Report
+2. Click Export > Excel",Excel file downloaded with user's full report data,High
+Report,Client Report,Migration Backup Report,Verify Client Report can be exported to CSV,"1. Open Migration Backup Report
+2. Click Export > CSV",CSV file downloaded with user's full report data,High
+Report,Client Report,Migration Backup Report,Verify BIM 360 → Amazon S3 backup report record correct for client,"1. Complete a BIM 360 → Amazon S3 backup as client user
+2. Open Client Report",Record appears with source=BIM 360 target=Amazon S3,High
+Report,Client Report,Migration Backup Report,Verify BIM 360 → File System backup report record correct for client,"1. Complete a BIM 360 → File System backup
+2. Open Client Report",Record appears with source=BIM 360 target=File System,High
+Report,Client Report,Migration Backup Report,Verify BIM 360 → S3 Compatible backup report record correct for client,"1. Complete a BIM 360 → S3 Compatible backup
+2. Open Client Report",Record appears with source=BIM 360 target=S3 Compatible,High
+Report,Client Report,Migration Backup Report,Verify BIM 360 → Azure Blob Storage backup report record correct for client,"1. Complete a BIM 360 → Azure Blob backup
+2. Open Client Report",Record appears with source=BIM 360 target=Azure Blob Storage,High
+Report,Client Report,Migration Backup Report,Verify Egnyte → Amazon S3 backup report record correct for client,"1. Complete an Egnyte → Amazon S3 backup
+2. Open Client Report",Record appears with source=Egnyte target=Amazon S3,High
+Report,Client Report,Migration Backup Report,Verify Egnyte → File System backup report record correct for client,"1. Complete an Egnyte → File System backup
+2. Open Client Report",Record appears with source=Egnyte target=File System,High
+Report,Client Report,Migration Backup Report,Verify Egnyte → S3 Compatible backup report record correct for client,"1. Complete an Egnyte → S3 Compatible backup
+2. Open Client Report",Record appears with source=Egnyte target=S3 Compatible,High
+Report,Client Report,Migration Backup Report,Verify Egnyte → Azure Blob Storage backup report record correct for client,"1. Complete an Egnyte → Azure Blob backup
+2. Open Client Report",Record appears with source=Egnyte target=Azure Blob Storage,High
+Report,Client Report,Downloaded Report Details,Verify client can view detailed downloaded report for a specific run,"1. Open Client Report > Downloaded Report Details
+2. Select a completed run",Detailed report opens with file-level results for that run,High
+Report,Client Report,Downloaded Report Details,Verify downloaded report details show per-file status (success/failed),"1. Open a detailed client report",Each file row shows transfer status,High
+Report,Client Report,Downloaded Report Details,Verify downloaded report details show error reason for failed files,"1. Open a detailed report with failures",Failed file rows include error message or reason,High
+Report,Client Report,Downloaded Report Details,Verify downloaded report details include file path and size,"1. Open detailed report",File path and size columns populated for each entry,Medium
+Report,Client Report,Downloaded Report Details,Verify client cannot see another user's detailed report,"1. Try to access another user's report URL directly",Access denied — only own reports accessible,High
+Report,Client Report,Downloaded Report Details,Verify downloaded report details can be filtered by status (success/failed),"1. Open detailed report
+2. Apply status filter",Only matching rows shown,Medium
+Report,Client Report,Downloaded Report Details,Verify detailed report can be exported to Excel,"1. Open detailed client report
+2. Click Export > Excel",Excel file with file-level detail downloaded,High
+Report,Client Report,Downloaded Report Details,Verify detailed report shows total files processed and total size,"1. Check summary row at bottom",Totals row shows file count and cumulative size,Medium
+Report,Client Report,Downloaded Report Details,Verify detailed report shows run start time and end time,"1. Open detailed report header",Start and end timestamps shown,Medium
+Report,Client Report,Downloaded Report Details,Verify navigation between summary and detail views works for client,"1. Click a run row in summary
+2. Click Back from detail view",Returns to client summary view cleanly,Medium

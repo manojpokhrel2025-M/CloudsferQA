@@ -702,6 +702,44 @@ public class AdminController : Controller
         return RedirectToAction("Index");
     }
 
+    // ── TEMPLATE DOWNLOADS ───────────────────────────────────────────────────
+
+    [HttpGet]
+    public IActionResult DownloadTemplate(string file)
+    {
+        // Sanitize — only allow alphanumeric, underscores, hyphens + .csv
+        if (string.IsNullOrWhiteSpace(file) || !System.Text.RegularExpressions.Regex.IsMatch(file, @"^[\w\-]+\.csv$"))
+            return BadRequest();
+
+        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "templates", file);
+        if (!System.IO.File.Exists(path)) return NotFound();
+
+        var bytes = System.IO.File.ReadAllBytes(path);
+        return File(bytes, "text/csv", file);
+    }
+
+    [HttpGet]
+    public IActionResult DownloadAllTemplates()
+    {
+        var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "templates");
+        var csvFiles = Directory.GetFiles(dir, "*.csv");
+        if (csvFiles.Length == 0) return NotFound();
+
+        using var ms = new System.IO.MemoryStream();
+        using (var zip = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var f in csvFiles.OrderBy(x => x))
+            {
+                var entry = zip.CreateEntry(Path.GetFileName(f), System.IO.Compression.CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                using var fileStream  = System.IO.File.OpenRead(f);
+                fileStream.CopyTo(entryStream);
+            }
+        }
+        ms.Position = 0;
+        return File(ms.ToArray(), "application/zip", "CloudsferQA_Templates.zip");
+    }
+
     // ── ACTIVITY LOG ─────────────────────────────────────────────────────────
 
     [HttpGet]

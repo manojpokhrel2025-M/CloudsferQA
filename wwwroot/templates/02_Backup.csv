@@ -1,0 +1,70 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Backup,Backup Configuration,BIM 360 Sources,Verify BIM 360 backup source can be configured,"1. Go to New Backup
+2. Select BIM 360 as source
+3. Enter credentials
+4. Connect",BIM 360 connected — project list loads,High
+Backup,Backup Configuration,BIM 360 Sources,Verify BIM 360 project list shows all accessible projects,"1. Connect BIM 360 as backup source
+2. Browse project list",All Admin and Member projects visible — archived excluded,High
+Backup,Backup Configuration,BIM 360 Sources,Verify BIM 360 backup scope can be narrowed to specific folders,"1. Connect BIM 360
+2. Select specific projects/folders",Only selected scope backed up,High
+Backup,Backup Configuration,Egnyte Sources,Verify Egnyte backup source can be configured,"1. Go to New Backup
+2. Select Egnyte as source
+3. Enter credentials
+4. Connect",Egnyte connected — folder list loads,High
+Backup,Backup Configuration,Egnyte Sources,Verify Egnyte folder tree browsable for backup scope selection,"1. Connect Egnyte
+2. Browse folder tree
+3. Select folders",Selected folders saved as backup scope,High
+Backup,Backup Configuration,Amazon S3 Target,Verify Amazon S3 can be set as backup target,"1. Select Amazon S3 as target
+2. Enter Access Key / Secret / Bucket
+3. Connect",S3 bucket accessible — backup target saved,High
+Backup,Backup Configuration,Amazon S3 Target,Verify S3 bucket path/prefix can be configured,"1. Set Amazon S3 as target
+2. Enter bucket and prefix/folder path",Backup stored under correct prefix in S3,Medium
+Backup,Backup Configuration,File System Target,Verify File System can be set as backup target,"1. Select File System as target
+2. Enter UNC path or local path
+3. Connect",File System path accessible — backup target saved,High
+Backup,Backup Configuration,File System Target,Verify backup files appear in correct File System folder after backup,"1. Set File System target
+2. Run backup
+3. Check target folder",Backup files present in specified folder,High
+Backup,Backup Configuration,S3 Compatible Target,Verify S3 Compatible storage can be set as backup target,"1. Select S3 Compatible as target
+2. Enter endpoint / key / secret / bucket
+3. Connect",S3 Compatible connected — target saved,High
+Backup,Backup Configuration,Azure Blob Storage Target,Verify Azure Blob Storage can be set as backup target,"1. Select Azure Blob Storage as target
+2. Enter connection string / container
+3. Connect",Azure Blob connected — target saved,High
+Backup,Backup Configuration,Azure Blob Storage Target,Verify Azure Blob container path can be specified,"1. Set Azure Blob as target
+2. Enter container and blob prefix",Backup stored under correct container path,Medium
+Backup,Backup Scheduling,,Verify backup can be scheduled with daily frequency,"1. Create backup plan
+2. Set schedule = Daily
+3. Set time
+4. Save",Backup runs daily at specified time,High
+Backup,Backup Scheduling,,Verify backup can be scheduled with weekly frequency,"1. Create backup plan
+2. Set schedule = Weekly
+3. Select day and time
+4. Save",Backup runs weekly on specified day/time,High
+Backup,Backup Scheduling,,Verify Next Backup Run Time required for weekly schedule on Standard Plan,"1. Standard Plan account
+2. Create backup with weekly schedule
+3. Skip run time selection
+4. Save",Validation error — backup does not start without run time,High
+Backup,Backup Scheduling,,Verify Auto Backup can be enabled,"1. Open backup plan settings
+2. Enable Auto Backup toggle
+3. Save",Auto Backup enabled — runs on schedule automatically,High
+Backup,Backup Execution,,Verify manual backup can be started immediately,"1. Create backup plan
+2. Click Run Now",Backup starts immediately — visible in Running Backups,High
+Backup,Backup Execution,,Verify backup status shows Running during execution,"1. Start backup
+2. Observe status",Status = Running while backup is active,High
+Backup,Backup Execution,,Verify backup completes with status Completed,"1. Run full backup
+2. Wait for completion",Status = Completed,High
+Backup,Backup Execution,,Verify incremental backup backs up only changed files,"1. Run full backup
+2. Modify some source files
+3. Run incremental backup",Only changed/new files included — not full re-backup,High
+Backup,Backup Execution,,Verify backup with failed files shows Completed with Errors,"1. Run backup with some inaccessible files",Status = Completed with Errors — failed file count shown,High
+Backup,Backup History,,Verify backup history lists all completed backups,"1. Navigate to Backup History for a plan",All past backup runs listed with date and status,High
+Backup,Backup History,,Verify backup history shows correct file counts per run,"1. Open backup history
+2. Check file counts for each run",Counts match actual files backed up per run,High
+Backup,Backup History,,Verify backup history can be filtered by date range,"1. Set From–To date filter in history
+2. Apply",Only runs within date range displayed,Medium
+Backup,Webhooks,,Verify webhooks page loads with 100+ entries without timeout,"1. Open Admin > Webhooks when 100+ entries exist",Page loads successfully — no freeze or timeout,High
+Backup,Webhooks,,Verify webhooks are processed with no stuck messages,"1. Trigger multiple webhook events
+2. Monitor over time",All events processed — nothing stuck in Not Processed,High
+Backup,Webhooks,,Verify multiple webhooks can be deleted in one action,"1. Select 2+ webhooks in Admin
+2. Click Delete Selected",All selected webhooks deleted in one operation,Medium

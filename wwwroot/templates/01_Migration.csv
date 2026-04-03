@@ -1,0 +1,53 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Migration,Source Connection,,Verify user can connect to BIM 360 as source,"1. Go to New Migration
+2. Select BIM 360 as source
+3. Enter valid credentials
+4. Click Connect",Connection successful and project list loads,High
+Migration,Source Connection,,Verify user can connect to Egnyte as source,"1. Go to New Migration
+2. Select Egnyte as source
+3. Enter valid credentials
+4. Click Connect",Connection successful and folder list loads,High
+Migration,Source Connection,,Verify error shown for invalid source credentials,"1. Enter wrong credentials for source
+2. Click Connect",Clear error message shown — connection not established,High
+Migration,Source Connection,,Verify source connection supports token refresh on expiry,"1. Let token expire
+2. Attempt migration",Token refreshed automatically — no manual re-auth required,High
+Migration,Destination Connection,,Verify user can connect to destination successfully,"1. Select destination type
+2. Enter valid credentials
+3. Click Connect",Destination connected — folder/bucket list loads,High
+Migration,Destination Connection,,Verify error shown for invalid destination credentials,"1. Enter wrong destination credentials
+2. Click Connect",Clear error message — connection not established,High
+Migration,Destination Connection,,Verify destination path can be selected or created,"1. Connect to destination
+2. Browse or create target folder/bucket",Target path selectable and saved correctly,Medium
+Migration,Folder Selection,,Verify user can select specific folders to migrate,"1. Connect source
+2. Browse folder tree
+3. Select specific folders",Only selected folders included in migration scope,High
+Migration,Folder Selection,,Verify Select All selects all folders,"1. Click Select All in folder tree",All folders marked as selected,Medium
+Migration,Folder Selection,,Verify deselecting a folder excludes it from migration,"1. Select all
+2. Deselect one folder
+3. Run migration",Deselected folder absent from migration results,High
+Migration,Folder Selection,,Verify folder count shown matches actual count,"1. Select folders
+2. Note count shown in UI
+3. Compare to actual folder count",Displayed count matches actual selected folders,Medium
+Migration,Migration Execution,,Verify migration starts when Start is clicked,"1. Configure source and destination
+2. Click Start Migration",Migration starts — status shows Running,High
+Migration,Migration Execution,,Verify migration status shows Running during execution,"1. Start a migration
+2. Observe status column",Status = Running while migration is active,High
+Migration,Migration Execution,,Verify migration completes with status Completed,"1. Run a full migration
+2. Wait for completion",Status changes to Completed,High
+Migration,Migration Execution,,Verify Completed with Errors status shown when some files fail,"1. Run migration with some inaccessible files",Status = Completed with Errors — failed files listed,High
+Migration,Migration Execution,,Verify migration can be paused and resumed,"1. Start migration
+2. Click Pause
+3. Click Resume",Migration pauses and resumes from where it stopped,High
+Migration,Migration Execution,,Verify migration can be cancelled,"1. Start migration
+2. Click Cancel/Stop",Migration stops — status updated accordingly,High
+Migration,Migration Execution,,Verify delta migration runs only for changed files,"1. Run full migration
+2. Modify some source files
+3. Run delta migration",Only modified/new files included in delta run,High
+Migration,Migration Report,,Verify migration report is generated after completion,"1. Complete a migration
+2. Navigate to Reports",Report entry visible with correct source and target,High
+Migration,Migration Report,,Verify report shows correct file counts,"1. Complete migration with known file count
+2. Open report",Total/Success/Failed counts match actual migration results,High
+Migration,Migration Report,,Verify report can be downloaded as CSV,"1. Open migration report
+2. Click Download",CSV file downloads with correct data,High
+Migration,Migration Report,,Verify failed files listed in report with error reason,"1. Run migration with some failures
+2. Open report details",Each failed file shows error/reason,High

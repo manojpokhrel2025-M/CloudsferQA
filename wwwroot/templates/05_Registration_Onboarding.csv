@@ -1,0 +1,32 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Registration & Onboarding,Account Registration,,Verify user can register with a valid email,"1. Go to Register page
+2. Enter valid @tzunami.com email
+3. Enter password (8+ chars)
+4. Confirm password
+5. Click Register",Account created — user redirected to session start,High
+Registration & Onboarding,Account Registration,,Verify registration blocked for email not in admin directory,"1. Try to register with an email not added by admin",Error: email not in directory — contact administrator,High
+Registration & Onboarding,Account Registration,,Verify registration blocked for non-company email,"1. Try to register with gmail.com or other domain",Error: only @tzunami.com addresses allowed,High
+Registration & Onboarding,Account Registration,,Verify password minimum 8 characters enforced,"1. Enter password shorter than 8 characters
+2. Submit",Validation error — password too short,High
+Registration & Onboarding,Account Registration,,Verify password confirmation must match,"1. Enter different values in password and confirm password fields
+2. Submit",Error: passwords do not match,High
+Registration & Onboarding,Account Registration,,Verify already registered email cannot register again,"1. Attempt to register with an email that already has a password set",Error: already registered — please log in,High
+Registration & Onboarding,Account Registration,,Verify role assigned by admin is applied after registration,"1. Admin adds user as QA role
+2. User registers
+3. Check user role",User has QA role as assigned — not default,High
+Registration & Onboarding,Email Verification,,Verify verification email is sent after registration (when SMTP configured),"1. Register with valid email (SMTP configured)
+2. Check inbox",Verification email received with clickable link,High
+Registration & Onboarding,Email Verification,,Verify clicking verification link activates account,"1. Receive verification email
+2. Click verify link",Account activated — user logged in automatically,High
+Registration & Onboarding,Email Verification,,Verify invalid/expired token shows correct error,"1. Use an already-used or incorrect verification link",Error: link invalid or already used,Medium
+Registration & Onboarding,Email Verification,,Verify admin can manually verify a user from admin panel,"1. Log in as Admin
+2. Go to Admin > Users
+3. Click Verify on unverified user",User marked as verified — can now log in,High
+Registration & Onboarding,Onboarding Flow,,Verify new user is redirected to Start Testing after registration,"1. Complete registration
+2. Observe redirect",User lands on Start Testing page,High
+Registration & Onboarding,Onboarding Flow,,Verify welcome message shown after first registration,"1. Register and verify account",Welcome message displayed on Start Testing page,Medium
+Registration & Onboarding,Onboarding Flow,,Verify user can immediately start a session after registration,"1. Complete registration
+2. Click Start Session",Session starts successfully — test runner loads,High
+Registration & Onboarding,Onboarding Flow,,Verify login works immediately after registration,"1. Register
+2. Log out
+3. Log back in with same credentials",Login successful,High

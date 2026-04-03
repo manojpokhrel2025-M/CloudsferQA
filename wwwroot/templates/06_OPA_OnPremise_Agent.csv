@@ -1,0 +1,40 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+OPA (On-Premise Agent),Agent Installation,,Verify OPA installer downloads successfully from portal,"1. Log in to Cloudsfer
+2. Navigate to OPA download page
+3. Click Download",Installer file downloads without error,High
+OPA (On-Premise Agent),Agent Installation,,Verify OPA installs successfully on Windows Server,"1. Run the downloaded installer on Windows Server
+2. Follow installation wizard
+3. Complete installation",OPA installed — service visible in Windows Services,High
+OPA (On-Premise Agent),Agent Installation,,Verify OPA service starts automatically after install,"1. Complete installation
+2. Check Windows Services",OPA service status = Running,High
+OPA (On-Premise Agent),Agent Installation,,Verify OPA registration with Cloudsfer account,"1. Open OPA configuration
+2. Enter account token/credentials
+3. Click Register",OPA registered — appears in portal under connected agents,High
+OPA (On-Premise Agent),Agent Installation,,Verify OPA can be uninstalled cleanly,"1. Uninstall OPA via Windows Programs
+2. Verify removal",Service removed — no leftover files or registry entries,Medium
+OPA (On-Premise Agent),Agent Status,,Verify OPA shows Online status in Cloudsfer portal,"1. Install and register OPA
+2. Open portal > OPA section",Agent listed with status = Online,High
+OPA (On-Premise Agent),Agent Status,,Verify OPA shows Offline when service is stopped,"1. Stop OPA service in Windows Services
+2. Check portal",Agent status updates to Offline,High
+OPA (On-Premise Agent),Agent Status,,Verify OPA version shown in portal matches installed version,"1. Check portal OPA status
+2. Compare to installed version",Version numbers match,Medium
+OPA (On-Premise Agent),Agent Status,,Verify OPA reconnects automatically after network interruption,"1. Disconnect network briefly
+2. Reconnect
+3. Check agent status",Agent reconnects and shows Online without manual restart,High
+OPA (On-Premise Agent),Agent Status,,Verify last seen timestamp updates regularly for Online agent,"1. Open portal OPA status
+2. Wait 1–2 minutes
+3. Refresh",Last seen timestamp updated — not stale,Medium
+OPA (On-Premise Agent),File Server Migration,,Verify OPA can browse local file server folders,"1. Configure migration with OPA source
+2. Browse local folder tree",Local file server folders visible and browsable,High
+OPA (On-Premise Agent),File Server Migration,,Verify OPA migration from local file server to Cloudsfer destination,"1. Select local folder via OPA as source
+2. Set Cloudsfer destination
+3. Start migration",Files migrated from local server to destination,High
+OPA (On-Premise Agent),File Server Migration,,Verify large files (1GB+) migrate correctly via OPA,"1. Include 1GB+ files in migration scope
+2. Run migration",Large files transfer completely without corruption,High
+OPA (On-Premise Agent),File Server Migration,,Verify file permissions preserved during OPA migration,"1. Run OPA migration
+2. Check permissions on migrated files at destination",File permissions match original source permissions,Medium
+OPA (On-Premise Agent),File Server Migration,,Verify OPA migration report shows correct file counts,"1. Complete OPA migration
+2. Open report",File count in report matches actual files migrated,High
+OPA (On-Premise Agent),File Server Migration,,Verify OPA handles network interruption mid-migration gracefully,"1. Start OPA migration
+2. Interrupt network briefly
+3. Resume",Migration resumes or retries — no data corruption,High

@@ -1,0 +1,53 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Administrator,User Management,,Verify admin can add a new user with email and role,"1. Go to Admin > Users
+2. Click Add User
+3. Enter email and select role
+4. Save",New user appears in user list with correct role,High
+Administrator,User Management,,Verify admin can edit an existing user's role,"1. Go to Admin > Users
+2. Click Edit on a user
+3. Change role
+4. Save",User role updated — reflected immediately,High
+Administrator,User Management,,Verify admin can deactivate a user,"1. Go to Admin > Users
+2. Click Deactivate on active user",User marked Inactive — cannot log in,High
+Administrator,User Management,,Verify admin can reactivate a deactivated user,"1. Go to Admin > Users
+2. Click Activate on inactive user",User marked Active — can log in again,High
+Administrator,User Management,,Verify admin cannot delete a user (soft deactivate only),"1. Open Users list
+2. Check for Delete option",No permanent delete button — only Deactivate,Medium
+Administrator,User Management,,Verify user list shows email role and status for each user,"1. Open Admin > Users",Each user row shows email role and Active/Inactive status,Medium
+Administrator,User Management,,Verify admin can search/filter users by email,"1. Go to Admin > Users
+2. Type in search field",List filters to matching users,Medium
+Administrator,User Management,,Verify admin can reset a user's password,"1. Go to Admin > Users
+2. Click Reset Password on a user",Password reset email sent or temporary password set,High
+Administrator,Activity Monitoring,,Verify activity log shows all user actions,"1. Go to Admin > Activity Log",All actions listed with user timestamp and category,High
+Administrator,Activity Monitoring,,Verify activity log can be filtered by category,"1. Go to Activity Log
+2. Select category tab (TestCases / Users / Modules)",Only entries of selected category shown,High
+Administrator,Activity Monitoring,,Verify activity log shows correct user for each action,"1. Perform an action as a specific user
+2. Check Activity Log",Action appears with correct username,High
+Administrator,Activity Monitoring,,Verify activity log entries are paginated,"1. Go to Activity Log with many entries",Entries split across pages — pagination controls visible,Medium
+Administrator,Activity Monitoring,,Verify activity log is read-only (no delete or edit),"1. Open Activity Log",No delete or edit buttons — log is append-only,High
+Administrator,System Settings,,Verify admin can configure SMTP settings,"1. Go to Admin > Settings > SMTP
+2. Enter host port username password
+3. Save and test",Test email sent successfully,High
+Administrator,System Settings,,Verify admin can change the Reset PIN,"1. Update ResetPin in appsettings.json
+2. Restart application
+3. Try reset with new PIN",New PIN accepted — old PIN rejected,High
+Administrator,System Settings,,Verify admin can view application version info,"1. Go to Admin > Settings or About",Application version and build info displayed,Low
+Administrator,System Settings,,Verify admin can configure allowed email domain for registration,"1. Check appsettings for domain restriction
+2. Attempt register with disallowed domain",Registration blocked for non-configured domain,High
+Administrator,Monthly Report Summaries,,Verify monthly summary shows total test sessions per month,"1. Go to Admin > Reports > Monthly Summary",Sessions grouped by month with counts,High
+Administrator,Monthly Report Summaries,,Verify monthly summary shows pass/fail/blocked counts per month,"1. Open Monthly Summary report",Pass Fail Blocked counts shown per month,High
+Administrator,Monthly Report Summaries,,Verify monthly summary can be exported to Excel,"1. Open Monthly Summary
+2. Click Export",Excel file downloaded with monthly data,Medium
+Administrator,Monthly Report Summaries,,Verify monthly summary shows trend across last 6 months,"1. Open Monthly Summary",Chart or table shows data for last 6 months,Medium
+Administrator,Analytical Report,,Verify analytical report shows top failing test cases,"1. Go to Admin > Reports > Analytical",Top N failing test cases listed with fail count,High
+Administrator,Analytical Report,,Verify analytical report shows pass rate by module,"1. Open Analytical Report",Each module shows pass rate percentage,High
+Administrator,Analytical Report,,Verify analytical report shows tester productivity (cases per session),"1. Open Analytical Report",Per-user test case counts visible,Medium
+Administrator,Analytical Report,,Verify analytical report can be filtered by date range,"1. Open Analytical Report
+2. Set date range filter",Data updates to show only selected period,Medium
+Administrator,Admin Dashboard,,Verify admin dashboard shows total users and active sessions,"1. Log in as admin
+2. Check dashboard",User count and active session count visible,High
+Administrator,Admin Dashboard,,Verify admin dashboard shows overall pass/fail/blocked totals,"1. Open admin dashboard",Totals shown across all users and sessions,High
+Administrator,Admin Dashboard,,Verify admin dashboard charts render without errors,"1. Open admin dashboard
+2. Check charts",All charts load and display data correctly,High
+Administrator,Admin Dashboard,,Verify admin dashboard data refreshes on page reload,"1. Complete some tests
+2. Reload admin dashboard",Updated totals reflected immediately,Medium

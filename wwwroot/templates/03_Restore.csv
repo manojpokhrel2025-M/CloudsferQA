@@ -1,0 +1,43 @@
+Module,Submodule,Group,Scenario,Steps,ExpectedResult,Priority
+Restore,Restore Point Selection,,Verify list of available restore points is displayed,"1. Navigate to Restore
+2. Select a backup plan",All available restore points listed with date and status,High
+Restore,Restore Point Selection,,Verify restore points are sorted by date descending,"1. Open restore point list",Most recent restore point shown first,Medium
+Restore,Restore Point Selection,,Verify specific restore point can be selected,"1. Open restore point list
+2. Click on a restore point to select it",Restore point selected — restore button becomes active,High
+Restore,Restore Point Selection,,Verify restore point details show file count and size,"1. Select a restore point
+2. Check detail panel",File count and backup size shown correctly,Medium
+Restore,Restore Point Selection,,Verify filtering restore points by date range works,"1. Apply date filter to restore point list
+2. Check results",Only restore points within selected range shown,Medium
+Restore,Restore Execution,BIM 360 Sources,Verify restore from BIM 360 backup point can be initiated,"1. Select a BIM 360 restore point
+2. Choose restore target
+3. Click Start Restore",Restore starts — status shows Running,High
+Restore,Restore Execution,BIM 360 Sources,Verify BIM 360 restore completes successfully,"1. Run full restore from BIM 360 backup
+2. Wait for completion",Status = Completed — all files restored,High
+Restore,Restore Execution,BIM 360 Sources,Verify BIM 360 restore can target original location,"1. Select restore point
+2. Choose Restore to Original Location",Files restored to their original BIM 360 path,High
+Restore,Restore Execution,Egnyte Sources,Verify restore from Egnyte backup point can be initiated,"1. Select an Egnyte restore point
+2. Choose restore target
+3. Click Start Restore",Restore starts — status shows Running,High
+Restore,Restore Execution,Egnyte Sources,Verify Egnyte restore completes successfully,"1. Run full restore from Egnyte backup
+2. Wait for completion",Status = Completed — all files restored to target,High
+Restore,Restore Execution,Amazon S3 Target,Verify restore from Amazon S3 backup executes correctly,"1. Select restore point backed up to Amazon S3
+2. Start restore",Restore completes — files retrieved from S3,High
+Restore,Restore Execution,File System Target,Verify restore from File System backup executes correctly,"1. Select restore point backed up to File System
+2. Start restore",Restore completes — files retrieved from file system path,High
+Restore,Restore Execution,S3 Compatible Target,Verify restore from S3 Compatible backup executes correctly,"1. Select restore point backed up to S3 Compatible
+2. Start restore",Restore completes — files retrieved correctly,High
+Restore,Restore Execution,Azure Blob Storage Target,Verify restore from Azure Blob Storage backup executes correctly,"1. Select restore point backed up to Azure Blob
+2. Start restore",Restore completes — files retrieved from blob container,High
+Restore,Restore Execution,,Verify partial restore (specific folders only) works,"1. Select restore point
+2. Choose specific folders to restore
+3. Start restore",Only selected folders restored — others untouched,High
+Restore,Restore Execution,,Verify restore can be cancelled while running,"1. Start restore
+2. Click Cancel",Restore stops — partial results noted,Medium
+Restore,Restore Verification,,Verify restored files match original files,"1. Complete a restore
+2. Compare restored files to originals",File names sizes and structure match original backup,High
+Restore,Restore Verification,,Verify file metadata preserved after restore,"1. Complete restore
+2. Check file metadata at destination",Created/modified dates and metadata match original,High
+Restore,Restore Verification,,Verify restore report shows correct success/fail counts,"1. Complete a restore
+2. Open restore report",Success and failed file counts match actual results,High
+Restore,Restore Verification,,Verify failed restore files listed with error reason,"1. Run restore with some failures
+2. Check report",Each failed file shows reason for failure,High
