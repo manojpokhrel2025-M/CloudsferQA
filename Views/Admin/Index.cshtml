@@ -64,6 +64,20 @@
         </div>
     </div>
 
+    <!-- Danger Zone: Reset All Sessions -->
+    <div style="background:#FFF8F8;border:1px solid #FFCDD2;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+            <div style="font-weight:700;color:#C62828;font-size:14px">🗑 Reset All Sessions</div>
+            <div style="font-size:12px;color:#78909C;margin-top:2px">Permanently deletes all test sessions and results for every user. This cannot be undone.</div>
+        </div>
+        <form method="post" action="/Admin/ResetAllSessions"
+              onsubmit="return confirm('⚠️ This will permanently delete ALL sessions and results for ALL users.\n\nThis cannot be undone. Are you sure?')">
+            <button type="submit" style="background:#C62828;color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+                Reset All Sessions
+            </button>
+        </form>
+    </div>
+
     <!-- Add User -->
     <div class="dash-card mb-4">
         <div class="dash-card-title">Add User to Directory</div>

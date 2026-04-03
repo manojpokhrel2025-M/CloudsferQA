@@ -653,6 +653,25 @@ public class AdminController : Controller
         return result;
     }
 
+    // ── RESET ALL SESSIONS ───────────────────────────────────────────────────
+
+    [HttpPost]
+    public async Task<IActionResult> ResetAllSessions()
+    {
+        if (await RequireAdminAsync() == null) return Unauthorized();
+
+        var results  = await _db.Results.ToListAsync();
+        var sessions = await _db.Sessions.ToListAsync();
+
+        _db.Results.RemoveRange(results);
+        _db.Sessions.RemoveRange(sessions);
+        await _db.SaveChangesAsync();
+
+        await LogAsync("ResetAllSessions", $"All sessions and results wiped ({sessions.Count} sessions, {results.Count} results deleted)", category: "User");
+        TempData["Success"] = $"All sessions cleared — {sessions.Count} session(s) and {results.Count} result(s) deleted. Everyone starts fresh.";
+        return RedirectToAction("Index");
+    }
+
     // ── ACTIVITY LOG ─────────────────────────────────────────────────────────
 
     [HttpGet]
