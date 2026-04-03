@@ -280,43 +280,53 @@
         </div>
 
         <!-- Body -->
-        <div style="padding:20px">
-            <div style="font-size:13px;color:#546E7A;margin-bottom:16px;line-height:1.6">
-                Set the status for <strong>@Model.Session.Version</strong> (@Model.Session.Environment). This will close the session and return you to the start page.
+        <div style="padding:20px;overflow-y:auto;max-height:70vh">
+
+            <!-- Module checklist -->
+            <div style="font-size:12px;font-weight:600;color:#546E7A;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Modules Tested</div>
+
+            <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#F5F5F5;border-radius:6px;cursor:pointer;margin-bottom:6px;font-size:13px;font-weight:600;color:#37474F">
+                <input type="checkbox" id="completeSelectAll" onchange="toggleAllCompleteModules(this)" checked style="width:15px;height:15px">
+                All Modules
+            </label>
+            <div id="completeModuleList" style="display:flex;flex-direction:column;gap:4px;margin-bottom:18px">
+                @foreach (var m in activeModules)
+                {
+                    var total  = Model.TestCases.Count(tc => tc.Module == m);
+                    var tested = Model.Results.Count(r => Model.TestCases.Any(tc => tc.Module == m && tc.Id == r.TestCaseId) && r.Status != "pending");
+                    var pct    = total > 0 ? (int)((double)tested / total * 100) : 0;
+                    var pillBg = pct == 100 ? "#E8F5E9" : pct > 0 ? "#FFF3E0" : "#F5F5F5";
+                    var pillTx = pct == 100 ? "#2E7D32" : pct > 0 ? "#E65100" : "#90A4AE";
+                    <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #E0E0E0;border-radius:6px;cursor:pointer;font-size:13px;color:#37474F">
+                        <input type="checkbox" class="complete-module-cb" value="@m" checked style="width:14px;height:14px" onchange="updateCompleteSelectAll()">
+                        <span style="flex:1">@m</span>
+                        <span style="font-size:11px;background:@pillBg;color:@pillTx;padding:2px 8px;border-radius:10px;font-weight:600">@tested/@total</span>
+                    </label>
+                }
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:10px">
+            <!-- Status selection -->
+            <div style="font-size:12px;font-weight:600;color:#546E7A;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Set Version Status</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
 
-                <button onclick="confirmComplete('Completed')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #A5D6A7;border-radius:10px;background:#F1F8E9;cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                    <span style="font-size:22px">✅</span>
-                    <div>
-                        <div style="font-weight:700;color:#2E7D32;font-size:14px">Completed</div>
-                        <div style="font-size:12px;color:#78909C;margin-top:2px">All planned testing done for this version</div>
-                    </div>
+                <button onclick="confirmComplete('Completed')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid #A5D6A7;border-radius:10px;background:#F1F8E9;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:20px">✅</span>
+                    <div><div style="font-weight:700;color:#2E7D32;font-size:13px">Completed</div><div style="font-size:11px;color:#78909C">All planned testing done</div></div>
                 </button>
 
-                <button onclick="confirmComplete('Skipped')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #FFE082;border-radius:10px;background:#FFFDE7;cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                    <span style="font-size:22px">⏭</span>
-                    <div>
-                        <div style="font-weight:700;color:#F57F17;font-size:14px">Skipped</div>
-                        <div style="font-size:12px;color:#78909C;margin-top:2px">Version skipped — testing not performed</div>
-                    </div>
+                <button onclick="confirmComplete('Skipped')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid #FFE082;border-radius:10px;background:#FFFDE7;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:20px">⏭</span>
+                    <div><div style="font-weight:700;color:#F57F17;font-size:13px">Skipped</div><div style="font-size:11px;color:#78909C">Version skipped — testing not performed</div></div>
                 </button>
 
-                <button onclick="confirmComplete('Halted')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #FFCDD2;border-radius:10px;background:#FFF8F8;cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                    <span style="font-size:22px">🛑</span>
-                    <div>
-                        <div style="font-weight:700;color:#C62828;font-size:14px">Halted</div>
-                        <div style="font-size:12px;color:#78909C;margin-top:2px">Testing stopped — blockers or issues encountered</div>
-                    </div>
+                <button onclick="confirmComplete('Halted')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid #FFCDD2;border-radius:10px;background:#FFF8F8;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:20px">🛑</span>
+                    <div><div style="font-weight:700;color:#C62828;font-size:13px">Halted</div><div style="font-size:11px;color:#78909C">Testing stopped — blockers encountered</div></div>
                 </button>
 
-                <button onclick="confirmComplete('In Progress')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #BBDEFB;border-radius:10px;background:#E3F2FD;cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                    <span style="font-size:22px">🔄</span>
-                    <div>
-                        <div style="font-weight:700;color:#1565C0;font-size:14px">In Progress</div>
-                        <div style="font-size:12px;color:#78909C;margin-top:2px">Keep session open — still testing</div>
-                    </div>
+                <button onclick="confirmComplete('In Progress')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid #BBDEFB;border-radius:10px;background:#E3F2FD;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                    <span style="font-size:20px">🔄</span>
+                    <div><div style="font-weight:700;color:#1565C0;font-size:13px">In Progress</div><div style="font-size:11px;color:#78909C">Keep session open — still testing</div></div>
                 </button>
 
             </div>
@@ -371,6 +381,15 @@
     }
     function closeCompleteModal() {
         document.getElementById('completeModal').style.display = 'none';
+    }
+    function toggleAllCompleteModules(cb) {
+        document.querySelectorAll('.complete-module-cb').forEach(c => c.checked = cb.checked);
+    }
+    function updateCompleteSelectAll() {
+        const all     = document.querySelectorAll('.complete-module-cb');
+        const checked = document.querySelectorAll('.complete-module-cb:checked');
+        document.getElementById('completeSelectAll').checked       = all.length === checked.length;
+        document.getElementById('completeSelectAll').indeterminate = checked.length > 0 && checked.length < all.length;
     }
     function confirmComplete(status) {
         document.getElementById('completeStatusInput').value = status;
