@@ -702,6 +702,137 @@ public class AdminController : Controller
         return RedirectToAction("Index");
     }
 
+    // ── USER IMPORT ──────────────────────────────────────────────────────────
+
+    [HttpGet]
+    public IActionResult DownloadUserImportTemplate()
+    {
+        using var wb = new XLWorkbook();
+        var ws = wb.Worksheets.Add("Users");
+
+        // Header
+        ws.Cell(1, 1).Value = "Email";
+        ws.Cell(1, 2).Value = "Role";
+
+        // Style header
+        var header = ws.Range("A1:B1");
+        header.Style.Font.Bold = true;
+        header.Style.Fill.BackgroundColor = XLColor.FromHtml("#1565C0");
+        header.Style.Font.FontColor = XLColor.White;
+
+        // Sample rows
+        string[,] samples = {
+            { "john@tzunami.com",  "QA"       },
+            { "jane@tzunami.com",  "Dev"      },
+            { "sam@tzunami.com",   "SubAdmin" },
+        };
+        for (int r = 0; r < samples.GetLength(0); r++)
+        {
+            ws.Cell(r + 2, 1).Value = samples[r, 0];
+            ws.Cell(r + 2, 2).Value = samples[r, 1];
+        }
+
+        // Dropdown validation for Role column
+        var roleValidation = ws.Range("B2:B1000").SetDataValidation();
+        roleValidation.List("\"QA,Dev,SubAdmin,Admin\"");
+        roleValidation.ShowErrorMessage = true;
+        roleValidation.ErrorTitle = "Invalid Role";
+        roleValidation.ErrorMessage = "Allowed: QA, Dev, SubAdmin, Admin";
+
+        ws.Column(1).Width = 36;
+        ws.Column(2).Width = 14;
+
+        using var ms = new System.IO.MemoryStream();
+        wb.SaveAs(ms);
+        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "UserImport_Template.xlsx");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ImportUsers(IFormFile file)
+    {
+        if (await RequireAdminAsync() == null) return Unauthorized();
+
+        if (file == null || file.Length == 0)
+        { TempData["Error"] = "Please select a file."; return RedirectToAction("Index"); }
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext != ".xlsx" && ext != ".csv")
+        { TempData["Error"] = "Only .xlsx or .csv files are supported."; return RedirectToAction("Index"); }
+
+        var rows = new List<(string Email, string Role)>();
+
+        try
+        {
+            if (ext == ".xlsx")
+            {
+                using var stream = file.OpenReadStream();
+                using var wb = new XLWorkbook(stream);
+                var ws = wb.Worksheet(1);
+                int lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+
+                // Find columns by header name
+                var headers = Enumerable.Range(1, 10)
+                    .Select(c => ws.Cell(1, c).GetString().Trim().ToLowerInvariant())
+                    .ToList();
+                int emailCol = headers.IndexOf("email") + 1;
+                int roleCol  = headers.IndexOf("role")  + 1;
+                if (emailCol == 0) { TempData["Error"] = "Column 'Email' not found."; return RedirectToAction("Index"); }
+
+                for (int r = 2; r <= lastRow; r++)
+                {
+                    var email = ws.Cell(r, emailCol).GetString().Trim().ToLowerInvariant();
+                    var role  = roleCol > 0 ? ws.Cell(r, roleCol).GetString().Trim() : "QA";
+                    if (!string.IsNullOrWhiteSpace(email)) rows.Add((email, role));
+                }
+            }
+            else // csv
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                var headerLine = await reader.ReadLineAsync() ?? "";
+                var headers = headerLine.Split(',').Select(h => h.Trim().Trim('"').ToLowerInvariant()).ToList();
+                int emailCol = headers.IndexOf("email");
+                int roleCol  = headers.IndexOf("role");
+                if (emailCol < 0) { TempData["Error"] = "Column 'Email' not found."; return RedirectToAction("Index"); }
+
+                string? line;
+                while ((line = await reader.ReadLineAsync()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var cols = line.Split(',');
+                    var email = GetCol(cols.ToList(), emailCol).ToLowerInvariant();
+                    var role  = roleCol >= 0 ? GetCol(cols.ToList(), roleCol) : "QA";
+                    if (!string.IsNullOrWhiteSpace(email)) rows.Add((email, role));
+                }
+            }
+        }
+        catch (Exception ex)
+        { TempData["Error"] = $"Failed to parse file: {ex.Message}"; return RedirectToAction("Index"); }
+
+        var validRoles = new[] { "QA", "Dev", "SubAdmin", "Admin" };
+        int added = 0, skipped = 0;
+        foreach (var (email, rawRole) in rows)
+        {
+            var role = validRoles.FirstOrDefault(r => r.Equals(rawRole, StringComparison.OrdinalIgnoreCase)) ?? "QA";
+            if (await _db.Users.AnyAsync(u => u.Email == email)) { skipped++; continue; }
+
+            _db.Users.Add(new User
+            {
+                Email           = email,
+                PasswordHash    = string.Empty,
+                Role            = role,
+                IsEmailVerified = false,
+                IsActive        = true,
+                CreatedAt       = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            await LogAsync("ImportUsers", $"User {email} added via bulk import as {role}", email: email, category: "User");
+            added++;
+        }
+
+        TempData["Success"] = $"{added} user(s) imported. {(skipped > 0 ? $"{skipped} skipped (already exist)." : "")}";
+        return RedirectToAction("Index");
+    }
+
     // ── TEMPLATE DOWNLOADS ───────────────────────────────────────────────────
 
     [HttpGet]
