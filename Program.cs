@@ -62,6 +62,12 @@ using (var scope = app.Services.CreateScope())
     catch { }
     try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sessions"" ADD COLUMN ""ArchivedAt"" TEXT NULL;"); }
     catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""TestCases"" ADD COLUMN ""Group"" TEXT NOT NULL DEFAULT '';"); }
+    catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""TestCases"" ADD COLUMN ""IsDeleted"" INTEGER NOT NULL DEFAULT 0;"); }
+    catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""TestCases"" ADD COLUMN ""DeletedAt"" TEXT NULL;"); }
+    catch { }
 
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ""ActivityLogs"" (
