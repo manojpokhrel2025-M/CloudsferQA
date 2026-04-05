@@ -363,7 +363,7 @@ function updateProgressBar() {
     let   tested  = 0;
 
     cards.forEach(card => {
-        if (card.dataset.status !== 'pending') tested++;
+        if (card.dataset.status !== 'pending' && card.dataset.status !== '') tested++;
     });
 
     const pct = total > 0 ? ((tested / total) * 100).toFixed(1) : '0.0';
@@ -386,10 +386,26 @@ function updateSidebarBadges() {
         const cards = Array.from(document.querySelectorAll('.test-card'))
             .filter(c => c.dataset.module === mod && c.dataset.submodule === sub);
 
-        const total = cards.length;
-        const done  = cards.filter(c => c.dataset.status !== 'pending').length;
+        const total      = cards.length;
+        const pass       = cards.filter(c => c.dataset.status === 'pass').length;
+        const fail       = cards.filter(c => c.dataset.status === 'fail').length;
+        const blocked    = cards.filter(c => c.dataset.status === 'blocked').length;
+        const skip       = cards.filter(c => c.dataset.status === 'skip').length;
+        const inprogress = cards.filter(c => c.dataset.status === 'inprogress').length;
+        const done       = pass + fail + blocked + skip + inprogress;
 
         const badge = item.querySelector('.submodule-badge');
         if (badge) badge.textContent = `${done}/${total}`;
+
+        const dots = item.querySelector('.submodule-status-dots');
+        if (!dots) return;
+
+        let html = '';
+        if (pass       > 0) html += `<span style="font-size:10px;color:#2E7D32;font-weight:600">✓${pass}</span>`;
+        if (fail       > 0) html += `<span style="font-size:10px;color:#C62828;font-weight:600">✗${fail}</span>`;
+        if (blocked    > 0) html += `<span style="font-size:10px;color:#E65100;font-weight:600">⊘${blocked}</span>`;
+        if (skip       > 0) html += `<span style="font-size:10px;color:#1565C0;font-weight:600">↷${skip}</span>`;
+        if (inprogress > 0) html += `<span style="font-size:10px;color:#1565C0;font-weight:600">● ${inprogress} IP</span>`;
+        dots.innerHTML = html;
     });
 }

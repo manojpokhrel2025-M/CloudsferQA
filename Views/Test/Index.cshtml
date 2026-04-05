@@ -42,8 +42,9 @@
 
 <!-- ── Fixed Header ──────────────────────────────────────────────────────── -->
 <header class="test-header">
-    <div class="header-left">
+    <div class="header-left" style="display:flex;align-items:center;gap:8px">
         <img src="/images/logo.svg" alt="Cloudsfer" height="30" class="header-logo">
+        <span style="color:#fff;font-weight:700;font-size:15px;letter-spacing:-.3px">CloudsferQA</span>
     </div>
 
     <div class="header-center">
@@ -103,13 +104,29 @@
                 <div class="module-items">
                     @foreach (var (submodule, cases) in submodules)
                     {
-                        int done = cases.Count(tc =>
-                            resultDict.TryGetValue(tc.Id, out var r) && r.Status != "pending");
+                        int smPass       = cases.Count(tc => resultDict.TryGetValue(tc.Id, out var r) && r.Status == "pass");
+                        int smFail       = cases.Count(tc => resultDict.TryGetValue(tc.Id, out var r) && r.Status == "fail");
+                        int smBlocked    = cases.Count(tc => resultDict.TryGetValue(tc.Id, out var r) && r.Status == "blocked");
+                        int smSkip       = cases.Count(tc => resultDict.TryGetValue(tc.Id, out var r) && r.Status == "skip");
+                        int smInProgress = cases.Count(tc => resultDict.TryGetValue(tc.Id, out var r) && r.Status == "inprogress");
+                        int smDone       = smPass + smFail + smBlocked + smSkip + smInProgress;
+                        int smTotal   = cases.Count;
                         <div class="submodule-item"
                              data-module="@module"
                              data-submodule="@submodule">
-                            <span class="submodule-name">@submodule</span>
-                            <span class="submodule-badge" id="badge-@(module.GetHashCode())-@(submodule.GetHashCode())">@done/@cases.Count</span>
+                            <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+                                    <span class="submodule-name">@submodule</span>
+                                    <span class="submodule-badge" id="badge-@(module.GetHashCode())-@(submodule.GetHashCode())">@smDone/@smTotal</span>
+                                </div>
+                                <div class="submodule-status-dots" id="sdots-@(module.GetHashCode())-@(submodule.GetHashCode())" style="display:flex;gap:4px;flex-wrap:wrap">
+                                    @if (smPass       > 0) { <span style="font-size:10px;color:#2E7D32;font-weight:600">✓@smPass</span> }
+                                    @if (smFail       > 0) { <span style="font-size:10px;color:#C62828;font-weight:600">✗@smFail</span> }
+                                    @if (smBlocked    > 0) { <span style="font-size:10px;color:#E65100;font-weight:600">⊘@smBlocked</span> }
+                                    @if (smSkip       > 0) { <span style="font-size:10px;color:#1565C0;font-weight:600">↷@smSkip</span> }
+                                    @if (smInProgress > 0) { <span style="font-size:10px;color:#1565C0;font-weight:600">● @smInProgress IP</span> }
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -134,7 +151,7 @@
 
     <div class="filter-bar" id="filterBar">
         <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="inprogress">In Progress</button>
         <button class="filter-btn" data-filter="pass">Pass</button>
         <button class="filter-btn" data-filter="fail">Fail</button>
         <button class="filter-btn" data-filter="blocked">Blocked</button>
@@ -199,6 +216,8 @@
                                         data-test-id="@tc.Id" data-status="blocked">Blocked</button>
                                 <button class="btn-action btn-skip @(status == "skip" ? "active" : "")"
                                         data-test-id="@tc.Id" data-status="skip">Skip</button>
+                                <button class="btn-action btn-inprogress @(status == "inprogress" ? "active" : "")"
+                                        data-test-id="@tc.Id" data-status="inprogress">In Progress</button>
                             </div>
 
                             <input type="text"
@@ -326,7 +345,7 @@
 
                 <button onclick="confirmComplete('In Progress')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid #BBDEFB;border-radius:10px;background:#E3F2FD;cursor:pointer;text-align:left;font-family:inherit;width:100%">
                     <span style="font-size:20px">🔄</span>
-                    <div><div style="font-weight:700;color:#1565C0;font-size:13px">In Progress</div><div style="font-size:11px;color:#78909C">Keep session open — still testing</div></div>
+                    <div><div style="font-weight:700;color:#1565C0;font-size:13px">Save & Continue Later</div><div style="font-size:11px;color:#78909C">Keep session open — still testing</div></div>
                 </button>
 
             </div>

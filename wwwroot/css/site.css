@@ -512,6 +512,8 @@ html, body {
 .btn-fail.active    { background: var(--red-fail);      color: #fff; }
 .btn-blocked.active { background: var(--amber-blocked); color: #fff; }
 .btn-skip.active    { background: var(--grey-skip);     color: #fff; }
+.btn-inprogress        { border-color: #1565C0; color: #1565C0; background: transparent; }
+.btn-inprogress.active { background: #1565C0;  color: #fff; }
 
 .btn-action:hover:not(.active) { opacity: .8; }
 
