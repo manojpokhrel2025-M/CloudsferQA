@@ -267,32 +267,37 @@
                             <td class="text-center" style="font-size:12px;color:#90A4AE">
                                 @user.CreatedAt.ToString("yyyy-MM-dd")
                             </td>
-                            <td class="text-center">
-                                <div class="admin-action-group">
-                                    <a href="/Admin/UserDetail/@user.Id" class="admin-btn admin-btn-view">
-                                        View
-                                    </a>
+                            <td class="text-center" style="white-space:nowrap;min-width:220px">
+                                <div style="display:flex;gap:6px;justify-content:center;align-items:center">
+                                    <a href="/Admin/UserDetail/@user.Id" class="admin-btn admin-btn-view" style="min-width:52px;text-align:center">View</a>
 
                                     @if (!user.IsEmailVerified)
                                     {
-                                        <form method="post" action="/Admin/VerifyUser" style="display:inline">
+                                        <form method="post" action="/Admin/VerifyUser" style="display:inline;margin:0">
                                             <input type="hidden" name="userId" value="@user.Id">
-                                            <button type="submit" class="admin-btn admin-btn-verify"
-                                                    title="Manually verify this user">
-                                                Verify
-                                            </button>
+                                            <button type="submit" class="admin-btn admin-btn-verify" style="min-width:52px">Verify</button>
                                         </form>
+                                    }
+                                    else
+                                    {
+                                        <span style="min-width:52px;display:inline-block"></span>
                                     }
 
                                     @if (user.Id != Model.CurrentAdmin.Id)
                                     {
-                                        <form method="post" action="/Admin/ToggleActive" style="display:inline">
+                                        <form method="post" action="/Admin/ToggleActive" style="display:inline;margin:0">
                                             <input type="hidden" name="userId" value="@user.Id">
                                             <button type="submit"
                                                     class="admin-btn @(user.IsActive ? "admin-btn-deactivate" : "admin-btn-activate")"
+                                                    style="min-width:78px"
                                                     onclick="return confirm('@(user.IsActive ? "Deactivate" : "Activate") @user.Email?')">
                                                 @(user.IsActive ? "Deactivate" : "Activate")
                                             </button>
+                                        </form>
+                                        <form method="post" action="/Admin/DeleteUser" style="display:inline;margin:0"
+                                              onsubmit="return confirm('Permanently delete @user.Email? This cannot be undone.')">
+                                            <input type="hidden" name="userId" value="@user.Id">
+                                            <button type="submit" class="admin-btn" style="min-width:52px;background:#C62828;color:#fff;border-color:#C62828">Delete</button>
                                         </form>
                                     }
                                 </div>

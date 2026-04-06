@@ -170,6 +170,36 @@ public class AdminController : Controller
         return RedirectToAction("Index");
     }
 
+    /// <summary>Permanently delete a user and all their sessions/results.</summary>
+    [HttpPost]
+    public async Task<IActionResult> DeleteUser(int userId)
+    {
+        var admin = await RequireAdminAsync();
+        if (admin == null) return Unauthorized();
+
+        if (userId == admin.Id)
+        {
+            TempData["Error"] = "You cannot delete your own account.";
+            return RedirectToAction("Index");
+        }
+
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        // Remove sessions and results
+        var sessions = await _db.Sessions.Where(s => s.UserId == userId).ToListAsync();
+        var sessionIds = sessions.Select(s => s.Id).ToList();
+        var results = await _db.Results.Where(r => sessionIds.Contains(r.SessionId)).ToListAsync();
+        _db.Results.RemoveRange(results);
+        _db.Sessions.RemoveRange(sessions);
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+
+        await LogAsync("DeleteUser", $"User {user.Email} permanently deleted (role: {user.Role})", category: "User");
+        TempData["Success"] = $"{user.Email} has been permanently deleted.";
+        return RedirectToAction("Index");
+    }
+
     /// <summary>Admin-side manual email verification (useful when SMTP is not configured).</summary>
     [HttpPost]
     public async Task<IActionResult> VerifyUser(int userId)
