@@ -247,8 +247,61 @@ public class AdminController : Controller
         var orders = await _db.ModuleOrders.ToDictionaryAsync(m => m.ModuleName, m => m.SortOrder);
         ViewBag.ModuleOrder = orders;
 
-        var testCases = await _db.TestCases.OrderBy(t => t.Submodule).ThenBy(t => t.Id).ToListAsync();
+        var testCases = await _db.TestCases.OrderBy(t => t.Submodule).ThenBy(t => t.SortOrder).ThenBy(t => t.Id).ToListAsync();
         return View(testCases);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveTestCaseOrder([FromBody] TestCaseOrderRequest req)
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        for (int i = 0; i < req.Ids.Count; i++)
+        {
+            var tc = await _db.TestCases.FindAsync(req.Ids[i]);
+            if (tc != null) tc.SortOrder = i;
+        }
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveSubmoduleOrder([FromBody] SubmoduleOrderRequest req)
+    {
+        if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var cases = await _db.TestCases
+            .Where(t => t.Module == req.Module && !t.IsDeleted)
+            .ToListAsync();
+
+        // Assign a sort order field using Group column as a proxy for submodule order
+        // We store order as "00_SubmoduleName" prefix so DB ordering works
+        for (int i = 0; i < req.Submodules.Count; i++)
+        {
+            var subName = req.Submodules[i];
+            var prefix  = i.ToString("D3");
+            cases.Where(t => t.Submodule == subName)
+                 .ToList()
+                 .ForEach(t => t.Group = t.Group.Length > 4 && t.Group[3] == '_'
+                     ? prefix + "_" + t.Group[4..]   // update existing prefix
+                     : t.Group);                       // leave group unchanged
+        }
+
+        // Store submodule order in ModuleOrders as "MODULE__SUBMODULE" keys
+        var existingSubOrders = await _db.ModuleOrders
+            .Where(m => m.ModuleName.StartsWith(req.Module + "__"))
+            .ToListAsync();
+        _db.ModuleOrders.RemoveRange(existingSubOrders);
+
+        for (int i = 0; i < req.Submodules.Count; i++)
+            _db.ModuleOrders.Add(new CloudsferQA.Models.ModuleOrder
+            {
+                ModuleName = req.Module + "__" + req.Submodules[i],
+                SortOrder  = i
+            });
+
+        await _db.SaveChangesAsync();
+        return Ok();
     }
 
     [HttpPost]
@@ -279,6 +332,7 @@ public class AdminController : Controller
         cases.ForEach(t => t.Module = newName);
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Module renamed to \"{newName}\".";
+        TempData["ScrollTo"] = newName;
         return RedirectToAction("TestCases");
     }
 
@@ -308,6 +362,7 @@ public class AdminController : Controller
         cases.ForEach(t => t.Submodule = newName);
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Submodule renamed to \"{newName}\".";
+        TempData["ScrollTo"] = moduleName;
         return RedirectToAction("TestCases");
     }
 
@@ -320,6 +375,7 @@ public class AdminController : Controller
         cases.ForEach(t => { t.IsDeleted = true; t.DeletedAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Submodule \"{submoduleName}\" moved to Bin.";
+        TempData["ScrollTo"] = moduleName;
         return RedirectToAction("TestCases");
     }
 
@@ -374,6 +430,7 @@ public class AdminController : Controller
         await _db.SaveChangesAsync();
         await LogAsync("AddTestCase", $"Test case {tc.Id} added to [{tc.Module}] > [{tc.Submodule}]: {tc.Scenario}", category: "TestCase");
         TempData["Success"] = $"Test case {tc.Id} added.";
+        TempData["ScrollTo"] = tc.Module;
         return RedirectToAction("TestCases");
     }
 
@@ -408,6 +465,7 @@ public class AdminController : Controller
 
         await _db.SaveChangesAsync();
         TempData["Success"] = $"Test case {tc.Id} updated.";
+        TempData["ScrollTo"] = tc.Module;
         return RedirectToAction("TestCases");
     }
 
@@ -944,4 +1002,17 @@ public class AdminController : Controller
                 (user.Role == "Admin" || user.Role == "SubAdmin"))
             ? user : null;
     }
+}
+
+public class SubmoduleOrderRequest
+{
+    public string Module { get; set; } = "";
+    public List<string> Submodules { get; set; } = new();
+}
+
+public class TestCaseOrderRequest
+{
+    public string Module { get; set; } = "";
+    public string Submodule { get; set; } = "";
+    public List<string> Ids { get; set; } = new();
 }

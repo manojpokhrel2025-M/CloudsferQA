@@ -68,6 +68,8 @@ using (var scope = app.Services.CreateScope())
     catch { }
     try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""TestCases"" ADD COLUMN ""DeletedAt"" TEXT NULL;"); }
     catch { }
+    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""TestCases"" ADD COLUMN ""SortOrder"" INTEGER NOT NULL DEFAULT 0;"); }
+    catch { }
 
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ""ActivityLogs"" (

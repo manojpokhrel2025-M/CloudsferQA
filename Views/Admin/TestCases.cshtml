@@ -5,6 +5,8 @@
 
     var savedOrder = ViewBag.ModuleOrder as Dictionary<string, int> ?? new Dictionary<string, int>();
 
+    var submoduleOrder = ViewBag.ModuleOrder as Dictionary<string, int> ?? new();
+
     var grouped = Model
         .Where(t => !t.IsDeleted)
         .GroupBy(t => t.Module)
@@ -12,11 +14,14 @@
         .ThenBy(g => g.Key)
         .ToDictionary(
             g => g.Key,
-            g => g.GroupBy(t => t.Submodule).OrderBy(sg => sg.Key).ToDictionary(
+            g => g.GroupBy(t => t.Submodule)
+                   .OrderBy(sg => submoduleOrder.TryGetValue(g.Key + "__" + sg.Key, out var so) ? so : int.MaxValue)
+                   .ThenBy(sg => sg.Key)
+                   .ToDictionary(
                 sg => sg.Key,
                 sg => sg.GroupBy(t => t.Group)
                         .OrderBy(gg => string.IsNullOrEmpty(gg.Key) ? "\xFF" : gg.Key)
-                        .ToDictionary(gg => gg.Key, gg => gg.OrderBy(t => t.Id).ToList())
+                        .ToDictionary(gg => gg.Key, gg => gg.OrderBy(t => t.SortOrder).ThenBy(t => t.Id).ToList())
             )
         );
 }
@@ -121,7 +126,7 @@
     {
         var moduleCount = submodules.Values.Sum(l => l.Count);
         var mId = modIdx++;
-        <div class="tc-module mb-3" data-module="@moduleName" style="border:1px solid #E0E0E0;border-radius:10px;overflow:hidden">
+        <div class="tc-module mb-3" data-module="@moduleName" id="mod-@moduleName.GetHashCode()" style="border:1px solid #E0E0E0;border-radius:10px;overflow:hidden">
 
             <!-- Module header -->
             <div style="background:#1565C0;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
@@ -154,16 +159,18 @@
 
             <!-- Submodules — collapsed by default -->
             <div class="tc-module-body" style="display:none">
+                <div class="submodule-list" data-module="@moduleName">
                 @{ int subIdx = 0; }
                 @foreach (var (submoduleName, groups) in submodules)
                 {
                     var sId = $"s{mId}_{subIdx++}";
                     var subTotal = groups.Values.Sum(l => l.Count);
                     bool hasGroups = groups.Any(g => !string.IsNullOrEmpty(g.Key));
-                    <div style="border-bottom:1px solid #F5F5F5">
+                    <div style="border-bottom:1px solid #F5F5F5" data-submodule="@submoduleName">
                         <!-- Submodule header -->
-                        <div style="background:#F9F9F9;padding:8px 16px 8px 32px;display:flex;align-items:center;justify-content:space-between">
+                        <div style="background:#F9F9F9;padding:8px 16px 8px 16px;display:flex;align-items:center;justify-content:space-between">
                             <div style="display:flex;align-items:center;gap:10px">
+                                <span class="sub-drag-handle" title="Drag to reorder" style="cursor:grab;color:#B0BEC5;font-size:15px;line-height:1;user-select:none">⠿</span>
                                 <button onclick="toggleSubmodule(this)" style="background:none;border:none;color:#546E7A;font-size:13px;cursor:pointer;padding:0">▸</button>
                                 <span style="font-weight:600;color:#37474F;font-size:13px">@submoduleName</span>
                                 <span style="font-size:11px;color:#90A4AE">@subTotal cases</span>
@@ -206,17 +213,19 @@
                                 <table style="width:100%;font-size:12px;border-collapse:collapse">
                                     <thead>
                                         <tr style="background:#FAFAFA;color:#90A4AE;text-transform:uppercase;font-size:10px;letter-spacing:.5px">
-                                            <th style="padding:6px 16px 6px @(hasGroups?"64px":"48px");text-align:left">ID</th>
+                                            <th style="padding:6px 8px;width:20px"></th>
+                                            <th style="padding:6px 8px;text-align:left">ID</th>
                                             <th style="padding:6px 8px;text-align:left">Scenario</th>
                                             <th style="padding:6px 8px;text-align:left">Priority</th>
                                             <th style="padding:6px 16px;text-align:right">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="tc-sortable-body" data-module="@moduleName" data-submodule="@submoduleName">
                                         @foreach (var tc in cases)
                                         {
-                                            <tr style="border-top:1px solid #F5F5F5">
-                                                <td style="padding:8px 8px 8px @(hasGroups?"64px":"48px");color:#1565C0;font-weight:600;white-space:nowrap">@tc.Id</td>
+                                            <tr style="border-top:1px solid #F5F5F5" data-id="@tc.Id">
+                                                <td style="padding:8px;color:#B0BEC5;cursor:grab;user-select:none;font-size:14px" class="tc-drag-handle">⠿</td>
+                                                <td style="padding:8px;color:#1565C0;font-weight:600;white-space:nowrap">@tc.Id</td>
                                                 <td style="padding:8px;color:#37474F">@tc.Scenario</td>
                                                 <td style="padding:8px">
                                                     <span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;
@@ -241,6 +250,7 @@
                         </div>
                     </div>
                 }
+                </div><!-- end submodule-list -->
             </div>
         </div>
     }
@@ -344,6 +354,43 @@
                 body: JSON.stringify(order)
             });
         }
+    });
+
+    // Drag-and-drop submodule reordering within each module
+    document.querySelectorAll('.submodule-list').forEach(list => {
+        Sortable.create(list, {
+            handle: '.sub-drag-handle',
+            animation: 150,
+            onEnd: function () {
+                const module = list.dataset.module;
+                const submodules = [...list.children]
+                    .filter(el => el.dataset.submodule)
+                    .map(el => el.dataset.submodule);
+                fetch('/Admin/SaveSubmoduleOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ module, submodules })
+                });
+            }
+        });
+    });
+
+    // Drag-and-drop test case reordering within each submodule
+    document.querySelectorAll('.tc-sortable-body').forEach(tbody => {
+        Sortable.create(tbody, {
+            handle: '.tc-drag-handle',
+            animation: 150,
+            onEnd: function () {
+                const module    = tbody.dataset.module;
+                const submodule = tbody.dataset.submodule;
+                const ids       = [...tbody.querySelectorAll('tr[data-id]')].map(r => r.dataset.id);
+                fetch('/Admin/SaveTestCaseOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ module, submodule, ids })
+                });
+            }
+        });
     });
 
     function toggleRename(id) {
@@ -484,6 +531,24 @@
         }
 
         window.location.reload();
+    }
+
+    // Auto-expand and scroll to module after save
+    @if (TempData["ScrollTo"] != null)
+    {
+        <text>
+    (function() {
+        const target = '@TempData["ScrollTo"]';
+        const mod = [...document.querySelectorAll('.tc-module')]
+            .find(el => el.dataset.module === target);
+        if (!mod) return;
+        const body = mod.querySelector('.tc-module-body');
+        const btn  = mod.querySelector('.module-header button');
+        if (body) body.style.display = '';
+        if (btn)  btn.textContent = '▾';
+        setTimeout(() => mod.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    })();
+        </text>
     }
 </script>
 }

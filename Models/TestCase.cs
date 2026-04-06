@@ -12,4 +12,5 @@ public class TestCase
     public string Group { get; set; } = string.Empty;
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
+    public int SortOrder { get; set; } = 0;
 }

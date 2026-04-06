@@ -47,6 +47,107 @@ public static class DataSeeder
     {
         var newCases = new List<TestCase>
         {
+            // ── Browse Environments ─────────────────────────────────────────
+            // Production (app.cloudsfer.com)
+            new() { Id="BRW-001", Module="Browse Environments", Submodule="Production",
+                Scenario="Production environment URL loads without error",
+                Steps="1. Open browser\n2. Navigate to https://app.cloudsfer.com",
+                ExpectedResult="Page loads successfully with HTTP 200; no error page or timeout",
+                Priority="High" },
+
+            new() { Id="BRW-002", Module="Browse Environments", Submodule="Production",
+                Scenario="Login redirects correctly on Production",
+                Steps="1. Navigate to https://app.cloudsfer.com\n2. Attempt to access a protected route without logging in",
+                ExpectedResult="User is redirected to the login page; correct domain retained in redirect URL",
+                Priority="High" },
+
+            new() { Id="BRW-003", Module="Browse Environments", Submodule="Production",
+                Scenario="Correct URL/domain confirmed on Production",
+                Steps="1. Navigate to https://app.cloudsfer.com\n2. Inspect browser address bar and any API calls",
+                ExpectedResult="All requests use app.cloudsfer.com; no cross-environment domain leakage",
+                Priority="High" },
+
+            new() { Id="BRW-004", Module="Browse Environments", Submodule="Production",
+                Scenario="Core UI elements render correctly on Production",
+                Steps="1. Navigate to https://app.cloudsfer.com\n2. Log in\n3. Inspect header, sidebar, dashboard",
+                ExpectedResult="Header, navigation sidebar, and dashboard tiles all render without layout breaks or missing assets",
+                Priority="High" },
+
+            // APP4 (Testing)
+            new() { Id="BRW-005", Module="Browse Environments", Submodule="APP4 - Testing",
+                Scenario="APP4 testing environment URL loads without error",
+                Steps="1. Open browser\n2. Navigate to https://app4.cloudsfer.com",
+                ExpectedResult="Page loads successfully with HTTP 200; no error page or timeout",
+                Priority="High" },
+
+            new() { Id="BRW-006", Module="Browse Environments", Submodule="APP4 - Testing",
+                Scenario="Login redirects correctly on APP4",
+                Steps="1. Navigate to https://app4.cloudsfer.com\n2. Attempt to access a protected route without logging in",
+                ExpectedResult="User is redirected to the login page; correct APP4 domain retained in redirect URL",
+                Priority="High" },
+
+            new() { Id="BRW-007", Module="Browse Environments", Submodule="APP4 - Testing",
+                Scenario="Correct URL/domain confirmed on APP4",
+                Steps="1. Navigate to https://app4.cloudsfer.com\n2. Inspect browser address bar and any API calls",
+                ExpectedResult="All requests use app4.cloudsfer.com; no cross-environment domain leakage",
+                Priority="High" },
+
+            new() { Id="BRW-008", Module="Browse Environments", Submodule="APP4 - Testing",
+                Scenario="Core UI elements render correctly on APP4",
+                Steps="1. Navigate to https://app4.cloudsfer.com\n2. Log in\n3. Inspect header, sidebar, dashboard",
+                ExpectedResult="Header, navigation sidebar, and dashboard tiles all render without layout breaks or missing assets",
+                Priority="High" },
+
+            // APP3 (Pre-Production)
+            new() { Id="BRW-009", Module="Browse Environments", Submodule="APP3 - Pre-Production",
+                Scenario="APP3 pre-production environment URL loads without error",
+                Steps="1. Open browser\n2. Navigate to https://app3.cloudsfer.com",
+                ExpectedResult="Page loads successfully with HTTP 200; no error page or timeout",
+                Priority="High" },
+
+            new() { Id="BRW-010", Module="Browse Environments", Submodule="APP3 - Pre-Production",
+                Scenario="Login redirects correctly on APP3",
+                Steps="1. Navigate to https://app3.cloudsfer.com\n2. Attempt to access a protected route without logging in",
+                ExpectedResult="User is redirected to the login page; correct APP3 domain retained in redirect URL",
+                Priority="High" },
+
+            new() { Id="BRW-011", Module="Browse Environments", Submodule="APP3 - Pre-Production",
+                Scenario="Correct URL/domain confirmed on APP3",
+                Steps="1. Navigate to https://app3.cloudsfer.com\n2. Inspect browser address bar and any API calls",
+                ExpectedResult="All requests use app3.cloudsfer.com; no cross-environment domain leakage",
+                Priority="High" },
+
+            new() { Id="BRW-012", Module="Browse Environments", Submodule="APP3 - Pre-Production",
+                Scenario="Core UI elements render correctly on APP3",
+                Steps="1. Navigate to https://app3.cloudsfer.com\n2. Log in\n3. Inspect header, sidebar, dashboard",
+                ExpectedResult="Header, navigation sidebar, and dashboard tiles all render without layout breaks or missing assets",
+                Priority="Medium" },
+
+            // Masstest (Development)
+            new() { Id="BRW-013", Module="Browse Environments", Submodule="Masstest - Development",
+                Scenario="Masstest development environment URL loads without error",
+                Steps="1. Open browser\n2. Navigate to https://masstest.cloudsfer.com",
+                ExpectedResult="Page loads successfully with HTTP 200; no error page or timeout",
+                Priority="Medium" },
+
+            new() { Id="BRW-014", Module="Browse Environments", Submodule="Masstest - Development",
+                Scenario="Login redirects correctly on Masstest",
+                Steps="1. Navigate to https://masstest.cloudsfer.com\n2. Attempt to access a protected route without logging in",
+                ExpectedResult="User is redirected to the login page; correct Masstest domain retained in redirect URL",
+                Priority="Medium" },
+
+            new() { Id="BRW-015", Module="Browse Environments", Submodule="Masstest - Development",
+                Scenario="Correct URL/domain confirmed on Masstest",
+                Steps="1. Navigate to https://masstest.cloudsfer.com\n2. Inspect browser address bar and any API calls",
+                ExpectedResult="All requests use masstest.cloudsfer.com; no cross-environment domain leakage",
+                Priority="Medium" },
+
+            new() { Id="BRW-016", Module="Browse Environments", Submodule="Masstest - Development",
+                Scenario="Core UI elements render correctly on Masstest",
+                Steps="1. Navigate to https://masstest.cloudsfer.com\n2. Log in\n3. Inspect header, sidebar, dashboard",
+                ExpectedResult="Header, navigation sidebar, and dashboard tiles all render without layout breaks or missing assets",
+                Priority="Low" },
+
             // ── Pre-Validation ──────────────────────────────────────────────
             new() { Id="PRV-001", Module="Pre-Validation", Submodule="Upload CSV Flow",
                 Scenario="Wizard opens with 3 steps: Download, Upload, Update",
@@ -338,7 +439,7 @@ public static class DataSeeder
                 ExpectedResult="All five backup tiles visible with accurate counts",
                 Priority="High" },
 
-            // ── Backup – new from release notes ────────────────────────────
+            // ── Backup ──────────────────────────────────────────────────────
             new() { Id="BAK-010", Module="Backup", Submodule="Backup Scheduling",
                 Scenario="Backup does not start without Next Backup Run Time on Standard Plan weekly cron (Bug 43184)",
                 Steps="1. Subscribe to Standard Plan\n2. Create Backup with weekly cron\n3. Skip Next Backup Run Time selection\n4. Save",
@@ -412,7 +513,7 @@ public static class DataSeeder
 
         db.TestCases.AddRange(toAdd);
         db.SaveChanges();
-        Console.WriteLine($"[DataSeeder] Added {toAdd.Count} new test cases from v3.39.0.14/v3.39.0.15.");
+        Console.WriteLine($"[DataSeeder] Added {toAdd.Count} new test cases from v3.39.0.14/v3.39.0.15 + BRW.");
     }
 
     // ── Report module test cases ────────────────────────────────────────────

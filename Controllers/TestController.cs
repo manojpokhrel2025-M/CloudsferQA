@@ -47,9 +47,20 @@ public class TestController : Controller
             .Where(r => r.SessionId == sessionId)
             .ToListAsync();
 
-        var moduleOrder  = await GetModuleOrderAsync(testCases.Select(t => t.Module).Distinct().ToList());
+        var moduleOrder    = await GetModuleOrderAsync(testCases.Select(t => t.Module).Distinct().ToList());
+        var subOrderDict   = await _db.ModuleOrders
+            .Where(m => m.ModuleName.Contains("__"))
+            .ToDictionaryAsync(m => m.ModuleName, m => m.SortOrder);
+
         var orderedCases = moduleOrder
-            .SelectMany(m => testCases.Where(tc => tc.Module == m).OrderBy(tc => tc.Submodule).ThenBy(tc => tc.Id))
+            .SelectMany(m => {
+                var mCases = testCases.Where(tc => tc.Module == m);
+                var subs   = mCases.Select(tc => tc.Submodule).Distinct()
+                    .OrderBy(s => subOrderDict.TryGetValue(m + "__" + s, out var so) ? so : int.MaxValue)
+                    .ThenBy(s => s)
+                    .ToList();
+                return subs.SelectMany(s => mCases.Where(tc => tc.Submodule == s).OrderBy(tc => tc.SortOrder).ThenBy(tc => tc.Id));
+            })
             .ToList();
 
         return View(new TestViewModel
