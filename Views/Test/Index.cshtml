@@ -97,8 +97,9 @@
         {
             var submodules = grouped[module];
             <div class="module-group" data-module="@module">
-                <div class="module-header">
+                <div class="module-header" data-module="@module">
                     <span class="module-name">@module</span>
+                    <span class="module-tick" style="display:none;font-size:13px;color:#2E7D32;font-weight:700;margin-left:6px" title="All test cases passed">✓</span>
                     <span class="module-chevron">▾</span>
                 </div>
                 <div class="module-items">

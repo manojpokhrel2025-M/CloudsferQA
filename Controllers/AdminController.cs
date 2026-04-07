@@ -367,9 +367,16 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> DeleteModule(string moduleName)
+    public async Task<IActionResult> DeleteModule(string moduleName, string pin)
     {
         if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var correctPin = _config["Admin:ResetPin"] ?? "1984";
+        if (pin != correctPin)
+        {
+            TempData["Error"] = "Incorrect PIN. Module not deleted.";
+            return RedirectToAction("TestCases");
+        }
 
         var cases = await _db.TestCases.Where(t => t.Module == moduleName && !t.IsDeleted).ToListAsync();
         cases.ForEach(t => { t.IsDeleted = true; t.DeletedAt = DateTime.UtcNow; });
@@ -517,9 +524,16 @@ public class AdminController : Controller
     // ── Bin ──────────────────────────────────────────────────────────────────
 
     [HttpPost]
-    public async Task<IActionResult> RestoreModule(string moduleName)
+    public async Task<IActionResult> RestoreModule(string moduleName, string pin)
     {
         if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var correctPin = _config["Admin:ResetPin"] ?? "1984";
+        if (pin != correctPin)
+        {
+            TempData["Error"] = "Incorrect PIN. Module not restored.";
+            return RedirectToAction("TestCases");
+        }
 
         var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.IsDeleted).ToListAsync();
         cases.ForEach(t => { t.IsDeleted = false; t.DeletedAt = null; });
@@ -530,9 +544,16 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> PermanentDeleteModule(string moduleName)
+    public async Task<IActionResult> PermanentDeleteModule(string moduleName, string pin)
     {
         if (await RequireAdminOrSubAdminAsync() == null) return Unauthorized();
+
+        var correctPin = _config["Admin:ResetPin"] ?? "1984";
+        if (pin != correctPin)
+        {
+            TempData["Error"] = "Incorrect PIN. Module not deleted.";
+            return RedirectToAction("TestCases");
+        }
 
         var cases = await _db.TestCases.Where(t => t.Module == moduleName && t.IsDeleted).ToListAsync();
         _db.TestCases.RemoveRange(cases);

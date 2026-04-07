@@ -408,4 +408,14 @@ function updateSidebarBadges() {
         if (inprogress > 0) html += `<span style="font-size:10px;color:#1565C0;font-weight:600">● ${inprogress} IP</span>`;
         dots.innerHTML = html;
     });
+
+    // Module-level tick — show ✓ only when every test case in the module is passed
+    document.querySelectorAll('.module-header[data-module]').forEach(header => {
+        const mod   = header.dataset.module;
+        const cards = Array.from(document.querySelectorAll(`.test-card[data-module="${CSS.escape(mod)}"]`));
+        const tick  = header.querySelector('.module-tick');
+        if (!tick || cards.length === 0) return;
+        const allPassed = cards.every(c => c.dataset.status === 'pass');
+        tick.style.display = allPassed ? 'inline' : 'none';
+    });
 }

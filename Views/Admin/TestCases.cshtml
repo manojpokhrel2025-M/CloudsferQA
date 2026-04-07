@@ -140,8 +140,9 @@
                     <button class="tc-btn tc-btn-light" onclick="toggleRename('rename-mod-@mId')">Rename</button>
                     <a href="/Admin/AddTestCase?moduleName=@Uri.EscapeDataString(moduleName)&submoduleName=" class="tc-btn tc-btn-light">+ Submodule</a>
                     <form method="post" action="/Admin/DeleteModule" style="margin:0"
-                          onsubmit="return confirm('Delete this module and ALL its test cases?')">
+                          onsubmit="return confirmDeleteModule(this, '@moduleName')">
                         <input type="hidden" name="moduleName" value="@moduleName">
+                        <input type="hidden" name="pin" value="">
                         <button type="submit" class="tc-btn tc-btn-danger">Delete Module</button>
                     </form>
                 </div>
@@ -286,43 +287,77 @@
         }
         else
         {
-            @foreach (var binModule in deletedGrouped)
-            {
-                var binCount = binModule.Count();
-                var deletedTime = binModule.Max(t => t.DeletedAt);
-                <div style="border:1px solid #ECEFF1;border-radius:10px;overflow:hidden;margin-bottom:8px;opacity:0.85">
-                    <div style="background:#ECEFF1;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
-                        <div style="display:flex;align-items:center;gap:10px">
-                            <span style="font-size:13px;font-weight:600;color:#546E7A">@binModule.Key</span>
-                            <span style="font-size:11px;background:#CFD8DC;color:#546E7A;padding:2px 8px;border-radius:10px">@binCount test case(s)</span>
-                            @if (deletedTime.HasValue)
-                            {
-                                <span style="font-size:11px;color:#90A4AE">Deleted @deletedTime.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
-                            }
-                        </div>
-                        <div style="display:flex;gap:6px">
-                            <form method="post" action="/Admin/RestoreModule" style="margin:0">
-                                <input type="hidden" name="moduleName" value="@binModule.Key">
-                                <button type="submit" style="font-size:11px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Restore</button>
-                            </form>
-                            <form method="post" action="/Admin/PermanentDeleteModule" style="margin:0"
-                                  onsubmit="return confirm('Permanently delete module &quot;@binModule.Key&quot; and all its test cases? This cannot be undone.')">
-                                <input type="hidden" name="moduleName" value="@binModule.Key">
-                                <button type="submit" style="font-size:11px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Delete Forever</button>
-                            </form>
-                        </div>
-                    </div>
-                    <div style="padding:8px 16px 8px 24px;background:#FAFAFA">
-                        @foreach (var sub in binModule.GroupBy(t => t.Submodule).OrderBy(g => g.Key))
-                        {
-                            <div style="font-size:12px;color:#78909C;padding:3px 0">
-                                <span style="font-weight:600">@sub.Key</span>
-                                <span style="color:#B0BEC5;margin-left:6px">@sub.Count() case(s)</span>
-                            </div>
-                        }
-                    </div>
+            <!-- Deleted Items folder (wraps all modules) -->
+            <div style="border:1px solid #CFD8DC;border-radius:10px;overflow:hidden">
+                <div id="deleted-items-header"
+                     style="background:#ECEFF1;padding:11px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none"
+                     onclick="toggleDeletedItems()">
+                    <span id="deleted-items-icon" style="font-size:13px;color:#90A4AE;transition:transform .2s;display:inline-block">▶</span>
+                    <span style="font-size:14px">📁</span>
+                    <span style="font-size:13px;font-weight:700;color:#546E7A">Deleted Items</span>
+                    <span style="font-size:11px;background:#CFD8DC;color:#546E7A;padding:2px 8px;border-radius:10px">@deletedGrouped.Count module(s)</span>
                 </div>
-            }
+                <div id="deleted-items-panel" style="display:none;padding:10px 12px;background:#FAFAFA">
+                    @{var binIdx = 0;}
+                    @foreach (var binModule in deletedGrouped)
+                    {
+                        var binCount    = binModule.Count();
+                        var deletedTime = binModule.Max(t => t.DeletedAt);
+                        var panelId     = $"bin-panel-{binIdx++}";
+                        <div style="border:1px solid #ECEFF1;border-radius:8px;overflow:hidden;margin-bottom:8px;opacity:0.92">
+                            <!-- Module header row -->
+                            <div class="bin-module-header" data-target="@panelId"
+                                 style="background:#F5F5F5;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span class="bin-toggle-icon" style="font-size:12px;color:#90A4AE;transition:transform .2s;display:inline-block">▶</span>
+                                    <span style="font-size:13px">📂</span>
+                                    <span style="font-size:13px;font-weight:600;color:#546E7A">@binModule.Key</span>
+                                    <span style="font-size:11px;background:#CFD8DC;color:#546E7A;padding:2px 8px;border-radius:10px">@binCount test case(s)</span>
+                                    @if (deletedTime.HasValue)
+                                    {
+                                        <span style="font-size:11px;color:#90A4AE">Deleted @deletedTime.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
+                                    }
+                                </div>
+                                <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+                                    <form method="post" action="/Admin/RestoreModule" style="margin:0"
+                                          onsubmit="return validateRestorePin(this)">
+                                        <input type="hidden" name="moduleName" value="@binModule.Key">
+                                        <input type="hidden" name="pin" value="">
+                                        <button type="submit" style="font-size:11px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Restore</button>
+                                    </form>
+                                    <form method="post" action="/Admin/PermanentDeleteModule" style="margin:0"
+                                          onsubmit="return confirmPermanentDelete(this, '@binModule.Key')">
+                                        <input type="hidden" name="moduleName" value="@binModule.Key">
+                                        <input type="hidden" name="pin" value="">
+                                        <button type="submit" style="font-size:11px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:600">Delete Forever</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Collapsible test cases -->
+                            <div id="@panelId" style="display:none;background:#FAFAFA">
+                                @foreach (var sub in binModule.GroupBy(t => t.Submodule).OrderBy(g => g.Key))
+                                {
+                                    <div style="border-top:1px solid #ECEFF1;padding:8px 16px 8px 44px">
+                                        <div style="font-size:12px;font-weight:700;color:#78909C;margin-bottom:4px">@sub.Key</div>
+                                        @foreach (var tc in sub.OrderBy(t => t.Id))
+                                        {
+                                            <div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #F5F5F5">
+                                                <span style="font-size:11px;color:#1565C0;font-weight:600;min-width:70px">@tc.Id</span>
+                                                <span style="font-size:12px;color:#546E7A;flex:1">@tc.Scenario</span>
+                                                <span style="font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600;
+                                                    background:@(tc.Priority=="High"?"#FFEBEE":tc.Priority=="Medium"?"#FFF3E0":"#E8F5E9");
+                                                    color:@(tc.Priority=="High"?"#C62828":tc.Priority=="Medium"?"#E65100":"#2E7D32")">
+                                                    @tc.Priority
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
     </div>
 
@@ -341,6 +376,56 @@
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
+    // Bin — Deleted Items folder toggle
+    function toggleDeletedItems() {
+        var panel = document.getElementById('deleted-items-panel');
+        var icon  = document.getElementById('deleted-items-icon');
+        var open  = panel.style.display === 'block';
+        panel.style.display = open ? 'none' : 'block';
+        icon.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+    }
+
+    // Bin — module expand/collapse
+    document.querySelectorAll('.bin-module-header').forEach(function(header) {
+        header.addEventListener('click', function() {
+            var panelId = this.getAttribute('data-target');
+            var panel   = document.getElementById(panelId);
+            var icon    = this.querySelector('.bin-toggle-icon');
+            var open    = panel.style.display === 'block';
+            panel.style.display = open ? 'none' : 'block';
+            icon.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+        });
+    });
+
+    // Delete Module (to Bin) — PIN prompt
+    function confirmDeleteModule(form, moduleName) {
+        if (!confirm('Move module "' + moduleName + '" and all its test cases to Bin?')) return false;
+        var pin = prompt('Enter your admin PIN to confirm:');
+        if (pin === null) return false;
+        if (!pin.trim()) { alert('PIN is required.'); return false; }
+        form.querySelector('input[name="pin"]').value = pin.trim();
+        return true;
+    }
+
+    // Bin — PIN before permanent delete
+    function confirmPermanentDelete(form, moduleName) {
+        if (!confirm('Permanently delete module "' + moduleName + '" and all its test cases? This cannot be undone.')) return false;
+        var pin = prompt('Enter your admin PIN to confirm permanent deletion:');
+        if (pin === null) return false;
+        if (!pin.trim()) { alert('PIN is required.'); return false; }
+        form.querySelector('input[name="pin"]').value = pin.trim();
+        return true;
+    }
+
+    // Bin — validate PIN before restore
+    function validateRestorePin(form) {
+        var pin = prompt('Enter your admin PIN to restore this module:');
+        if (pin === null) return false;
+        if (!pin.trim()) { alert('PIN is required.'); return false; }
+        form.querySelector('input[name="pin"]').value = pin.trim();
+        return true;
+    }
+
     // Drag-and-drop module reordering
     Sortable.create(document.getElementById('moduleList'), {
         handle: '.drag-handle',
